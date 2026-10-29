@@ -1,0 +1,27 @@
+// Descripciones del catálogo (columna `ficha`) traducidas al inglés, por `clave`. Son
+// traducción de las del catálogo de Axel, sin datos nuevos; si cambia una ficha, cambiar aquí.
+export const FICHAS_EN = {
+  catedral: 'Colonial cathedral facing the main square, one of the largest in Mexico.',
+  capilla_rosario: '17th-century baroque chapel covered in gilded plasterwork; one of the icons of New Spain baroque.',
+  palafoxiana: 'Library founded in 1646, considered the first public library in the Americas, with its original wooden shelving.',
+  museo_amparo: 'Museum of pre-Hispanic, colonial and contemporary art in downtown mansions; terrace with a view of the Cathedral.',
+  callejon_sapos: 'Street of antiques, cafés and bars in the historic center, with an antiques market on weekends.',
+  barrio_artista: 'Painters’ studios and a market for crafts, Talavera pottery and traditional Puebla sweets.',
+  casa_alfenique: '18th-century mansion whose white mortar façade recalls alfeñique sugar candy; regional museum.',
+  barrio_xanenetla: 'Traditional neighborhood with murals on its house fronts; a little-visited alternative steps from downtown.',
+  fuertes: 'Site of the Battle of May 5, 1862; museum in Fort Loreto, green areas and a view of the city.',
+  museo_barroco: 'Museum devoted to the baroque in a contemporary building in the Angelópolis area; a good indoor option if it rains.',
+  estrella_puebla: 'Observation wheel with closed cabins and views of the city and the volcanoes, in Angelópolis.',
+  zona_arq_cholula: 'Pyramid base with the largest known volume in the world; tunnels, plazas and a site museum. The most visited INAH site in Puebla.',
+  remedios: 'Sanctuary on top of the Great Pyramid, with views of Cholula and, on clear days, Popocatépetl.',
+  san_gabriel: '16th-century Franciscan convent facing the main square of San Pedro Cholula, next to the Royal Chapel and its many domes.',
+  tonantzintla: 'Church with a polychrome indigenous-baroque interior of carved faces, fruits and flowers; minutes from Cholula and much less crowded.',
+  acatepec: 'Church whose façade is covered in Talavera tiles; easy to combine with Tonantzintla in one visit.',
+  huejotzingo: '16th-century Franciscan former convent with posa chapels and mural paintings; the town is known for its cider and its carnival.',
+  atlixco_centro: 'Pueblo Mágico with a mild climate, plant nurseries and arcades; in autumn it hosts the Valle de Catrinas.',
+  cerro_san_miguel: 'Hill with a chapel at the top and views of Popocatépetl and the Atlixco valley.',
+  africam: 'Park with free-roaming animals toured by vehicle; a full-day outdoor family plan.',
+  zocalo_puebla: 'Main square facing the Cathedral; the starting point of the historic center, a World Heritage Site.',
+  casa_serdan: 'Regional Museum of the Mexican Revolution in the Serdán siblings’ house, where one of the first clashes of the Revolution took place on November 18, 1910. Indoors.',
+  acuario_michin: 'Indoor aquarium in Parque Puebla, in the north of the city; a family option if it rains.',
+}
