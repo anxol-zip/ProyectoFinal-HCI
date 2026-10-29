@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta — Puebla Turística 360°</title>
+<style>
+  :root {
+    --fondo-pagina: #D6D6D6; --g0: #FFFFFF; --g1: #F4F4F4; --g2: #E2E2E2; --g3: #BDBDBD;
+    --tx: #222222; --tx2: #555555;
+    --verde-bg: #DCF2E3; --verde: #14662E;
+    --ama-bg: #FFF1C2;   --ama: #6B4A00;
+    --rojo-bg: #FBE0DE;  --rojo: #9E1C14;
+    --gris-bg: #ECEDEF;  --gris: #3F4650;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo-pagina); color: var(--tx); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  button, select, input { font: inherit; }
+  :focus-visible { outline: 3px solid #1F4E99; outline-offset: 2px; }
+
+  /* Barra de la maqueta (no es parte de la app) */
+  .maqueta-nav { position: sticky; top: 0; z-index: 10; background: #2B2B2B; color: #FFF; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .maqueta-nav strong { margin-right: 8px; }
+  .maqueta-nav button { background: #444; color: #FFF; border: 0; border-radius: 6px; padding: 6px 12px; cursor: pointer; min-height: 32px; }
+  .maqueta-nav button[aria-current="true"] { background: #FFF; color: #222; }
+  .maqueta-nav .aviso { margin-left: auto; font-size: 13px; color: #DDD; }
+
+  /* Ventana de navegador */
+  .pantalla { display: none; padding: 24px 16px 40px; }
+  .pantalla.activa { display: block; }
+  .pantalla > h2 { max-width: 1280px; margin: 0 auto 4px; font-size: 18px; }
+  .pantalla > p.nota { max-width: 1280px; margin: 0 auto 12px; color: var(--tx2); font-size: 14px; }
+  .ventana { max-width: 1280px; margin: 0 auto; background: var(--g0); border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.25); overflow: hidden; }
+  .ventana-barra { background: var(--g2); padding: 8px 12px; display: flex; gap: 10px; align-items: center; }
+  .ventana-barra .puntos span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--g3); margin-right: 6px; }
+  .ventana-barra .url { flex: 1; background: var(--g0); border-radius: 6px; padding: 4px 10px; color: var(--tx2); font-size: 13px; }
+  .app { height: 760px; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Cabecera de la app */
+  .app-cabecera { display: flex; align-items: center; gap: 24px; padding: 12px 24px; border-bottom: 1px solid var(--g2); }
+  .logo { font-weight: 700; font-size: 18px; }
+  .logo small { font-weight: 400; color: var(--tx2); font-size: 12px; display: block; }
+  .app-cabecera nav { display: flex; gap: 18px; }
+  .app-cabecera nav a { color: var(--tx); text-decoration: none; padding: 6px 0; }
+  .app-cabecera nav a.actual { border-bottom: 3px solid var(--tx); font-weight: 600; }
+  .escenario { margin-left: auto; display: flex; gap: 8px; align-items: center; font-size: 14px; }
+  .escenario select { padding: 6px 8px; border: 1px solid var(--g3); border-radius: 6px; background: var(--g0); min-height: 34px; }
+  .franja-sim { background: #333; color: #FFF; text-align: center; padding: 5px; font-size: 13px; letter-spacing: .03em; }
+
+  /* Semáforo: color + ícono + texto (WCAG: el color no es la única señal) */
+  .sem { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-weight: 600; font-size: 13px; white-space: nowrap; }
+  .sem::before { font-weight: 800; }
+  .sem.verde { background: var(--verde-bg); color: var(--verde); }    .sem.verde::before { content: "✓"; }
+  .sem.amarillo { background: var(--ama-bg); color: var(--ama); }     .sem.amarillo::before { content: "!"; }
+  .sem.rojo { background: var(--rojo-bg); color: var(--rojo); }       .sem.rojo::before { content: "✕"; }
+  .sem.sin_dato { background: var(--gris-bg); color: var(--gris); }   .sem.sin_dato::before { content: "?"; }
+  .ajuste { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--tx); background: var(--g2); border-radius: 6px; padding: 2px 8px; }
+
+  /* Componentes genéricos */
+  .boton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 8px; border: 2px solid var(--tx); background: var(--g0); color: var(--tx); cursor: pointer; font-weight: 600; text-decoration: none; }
+  .boton.primario { background: var(--tx); color: var(--g0); }
+  .chip { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 2px solid var(--g3); background: var(--g0); margin: 0 8px 8px 0; cursor: pointer; }
+  .chip.sel { border-color: var(--tx); background: var(--g2); font-weight: 600; }
+  .chip.sel::before { content: "✓ "; }
+  .tarjeta { border: 1px solid var(--g2); border-radius: 10px; padding: 16px; background: var(--g0); }
+  .confianza { font-size: 13px; color: var(--tx2); }
+  .confianza b { color: var(--tx); }
+  .etiqueta { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--tx2); margin: 14px 0 4px; }
+  .ilustrativo { font-size: 12px; color: var(--tx2); font-style: italic; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--g2); }
+  th { color: var(--tx2); font-weight: 600; font-size: 13px; }
+
+  /* Diseño explorar: lista + mapa (+ panel lateral) */
+  .explorar { flex: 1; display: grid; grid-template-columns: 360px 1fr; min-height: 0; }
+  .explorar.con-panel { grid-template-columns: 360px 1fr 400px; }
+  .lista { border-right: 1px solid var(--g2); overflow: auto; padding: 12px; background: var(--g1); }
+  .lista h3 { margin: 4px 4px 10px; font-size: 15px; }
+  .item { background: var(--g0); border: 1px solid var(--g2); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .item .fila { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .item .nombre { font-weight: 600; }
+  .item .razon { font-size: 13px; color: var(--tx2); margin-top: 4px; }
+  .item.marcado { outline: 3px solid var(--tx); }
+  .mapa { position: relative; background: #EDEDED; min-height: 0; }
+  .mapa svg { width: 100%; height: 100%; display: block; }
+  .leyenda { position: absolute; left: 12px; bottom: 12px; background: var(--g0); border-radius: 8px; padding: 8px 10px; display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+  .mapa .pie { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--tx2); }
+  .lateral { border-left: 1px solid var(--g2); overflow: auto; padding: 18px; }
+  .lateral h3 { margin: 0 0 6px; font-size: 20px; }
+  .razones { margin: 8px 0 0; padding-left: 18px; }
+  .horas { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center; font-size: 13px; }
+  .horas div { background: var(--g1); border-radius: 6px; padding: 6px 2px; }
+  .acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .difuminado { opacity: .45; }
+
+  /* T1 */
+  .inicio { flex: 1; display: grid; place-items: center; background: var(--g1); }
+  .inicio .tarjeta { width: 760px; padding: 32px; }
+  .inicio h1 { margin: 0 0 4px; font-size: 32px; }
+
+  /* T4 */
+  .comparacion { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 12px; align-items: stretch; }
+  .flecha { display: grid; place-items: center; font-size: 28px; color: var(--tx2); }
+  .tip { background: var(--g1); border-left: 4px solid var(--tx); padding: 10px 14px; margin-top: 16px; border-radius: 4px; }
+
+  /* T5 */
+  .modal-capa { position: absolute; inset: 0; background: rgba(0,0,0,.45); display: grid; place-items: center; }
+  .modal { width: 520px; }
+  .reporte-botones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .reporte-botones button { min-height: 88px; border-radius: 10px; border: 2px solid transparent; cursor: pointer; font-size: 17px; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .reporte-botones .verde { background: var(--verde-bg); color: var(--verde); border-color: var(--verde); }
+  .reporte-botones .amarillo { background: var(--ama-bg); color: var(--ama); border-color: var(--ama); }
+  .reporte-botones .rojo { background: var(--rojo-bg); color: var(--rojo); border-color: var(--rojo); }
+  .exito { background: var(--verde-bg); color: var(--verde); border-radius: 8px; padding: 10px 12px; font-weight: 600; }
+  .limite { background: var(--g1); border-radius: 8px; padding: 10px 12px; color: var(--tx2); }
+
+  /* T6 */
+  .chat { display: flex; flex-direction: column; height: 100%; }
+  .mensajes { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 92%; padding: 10px 14px; border-radius: 12px; }
+  .msg.usuario { align-self: flex-end; background: var(--tx); color: var(--g0); }
+  .msg.asistente { align-self: flex-start; background: var(--g1); }
+  .fuentes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .fuentes span { font-size: 12px; border: 1px solid var(--g3); border-radius: 999px; padding: 2px 8px; background: var(--g0); }
+  details { margin-top: 8px; font-size: 13px; }
+  .sugeridas { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  .sugeridas span { font-size: 13px; border: 1px dashed var(--g3); border-radius: 999px; padding: 4px 10px; }
+  .entrada { display: flex; gap: 8px; }
+  .entrada input { flex: 1; min-height: 44px; border: 1px solid var(--g3); border-radius: 8px; padding: 0 12px; }
+
+  /* G1 */
+  .panel { flex: 1; overflow: auto; padding: 18px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-content: start; }
+  .kpis { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi .valor { font-size: 28px; font-weight: 700; }
+  .kpi .sub { font-size: 12px; color: var(--tx2); }
+  .kpi.destacado { border: 2px solid var(--tx); }
+  .estatal { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px; font-size: 14px; }
+  .estatal div { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; border-bottom: 1px solid var(--g2); }
+  .mini-mapa { height: 300px; background: #EDEDED; border-radius: 8px; position: relative; }
+
+  /* A1 */
+  .acerca { flex: 1; overflow: auto; padding: 24px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-content: start; }
+  .acerca ul { padding-left: 18px; margin: 6px 0; }
+</style>
+</head>
+<body>
+
+<div class="maqueta-nav" role="navigation" aria-label="Pantallas de la maqueta">
+  <strong>Maqueta</strong>
+  <button data-ir="t1">T1 Inicio</button>
+  <button data-ir="t2">T2 Mapa</button>
+  <button data-ir="t3">T3 Punto</button>
+  <button data-ir="t4">T4 Mejor ve a…</button>
+  <button data-ir="t5">T5 ¿Cómo está?</button>
+  <button data-ir="t6">T6 Asistente</button>
+  <button data-ir="g1">G1 Panel</button>
+  <button data-ir="a1">A1 Acerca de</button>
+  <span class="aviso">Baja fidelidad · datos ilustrativos · puntos del catálogo verificado</span>
+</div>
+
+<!-- ============ T1 ============ -->
+<section class="pantalla" id="t1">
+  <h2>T1 — Inicio · CU_01</h2>
+  <p class="nota">POST /api/sesiones con el perfil. Sin registro. La ubicación se elige de una lista (en http por la red del stand el celular no da GPS).</p>
+  <div class="ventana"><div class="ventana-barra"><span class="puntos"><span></span><span></span><span></span></span><span class="url">http://192.168.43.10:8000/</span></div>
+    <div class="app">
+      <header class="app-cabecera"><div class="logo">[Nombre del proyecto]<small>Puebla · Cholula · Atlixco</small></div><nav aria-label="Secciones"><a href="#t2" data-ir="t2" class="actual">Explorar</a><a href="#t6" data-ir="t6">Asistente</a><a href="#g1" data-ir="g1">Panel de gobierno</a><a href="#a1" data-ir="a1">Acerca de</a></nav><div class="escenario" data-componente="SelectorEscenario"><label for="esc">Escenario</label><select id="esc"><option>Ahora (datos en vivo)</option><option selected>Sábado de puente, 12:00, con lluvia</option></select></div></header>
+      <div class="franja-sim">SIMULACIÓN · sábado de puente, 12:00, con lluvia desde las 15:00</div>
+      <div class="inicio">
+        <div class="tarjeta">
+          <h1>¿A dónde voy ahora?</h1>
+          <p style="color:var(--tx2);margin-top:0">Te decimos qué lugar conviene en este momento: sin multitudes, lluvia ni tráfico.</p>
+          <div class="etiqueta">¿Qué te gusta?</div>
+          <div>
+            <span class="chip sel">Historia</span><span class="chip">Gastronomía</span><span class="chip sel">Arte</span><span class="chip">Naturaleza</span><span class="chip">Compras</span><span class="chip">Familia</span><span class="chip">Pueblos mágicos</span>
+          </div>
+          <div class="etiqueta">¿Cuánto tiempo tienes?</div>
+          <div><span class="chip">2 horas</span><span class="chip sel">Medio día</span><span class="chip">Todo el día</span></div>
+          <div class="etiqueta">¿Dónde estás?</div>
+          <div data-componente="SelectorUbicacion">
+            <select style="min-height:44px;width:100%;border:1px solid var(--g3);border-radius:8px;padding:0 10px">
+              <option>Zócalo de Puebla</option><option>Zona Arqueológica de Cholula</option><option>Centro de Atlixco</option>
+            </select>
+          </div>
+          <div class="acciones"><a class="boton primario" href="#t2" data-ir="t2">Ver qué me conviene →</a></div>
+          <p class="confianza" style="margin-top:16px">🔒 Sin registro. No guardamos tu ubicación. <a href="#a1" data-ir="a1">Aviso de privacidad</a></p>
+        </div>
+      </div>
+    </div></div>
+</section>
+
+<!-- ============ T2 ============ -->
+<section class="pantalla" id="t2">
+  <h2>T2 — Mapa con semáforo · CU_02, CU_08</h2>
+  <p class="nota">GET /api/semaforo?escenario=puente_lluvia. Lista ordenada por conveniencia; franja de simulación visible (RN_11); confianza en cada punto (RN_09).</p>
+  <div class="ventana"><div class="ventana-barra"><span class="puntos"><span></span><span></span><span></span></span><span class="url">http://192.168.43.10:8000/?escenario=puente_lluvia</span></div>
+    <div class="app">
+      <header class="app-cabecera"><div class="logo">[Nombre del proyecto]<small>Puebla · Cholula · Atlixco</small></div><nav aria-label="Secciones"><a href="#t2" data-ir="t2" class="actual">Explorar</a><a href="#t6" data-ir="t6">Asistente</a><a href="#g1" data-ir="g1">Panel de gobierno</a><a href="#a1" data-ir="a1">Acerca de</a></nav><div class="escenario" data-componente="SelectorEscenario"><label for="esc">Escenario</label><select id="esc"><option>Ahora (datos en vivo)</option><option selected>Sábado de puente, 12:00, con lluvia</option></select></div></header>
+      <div class="franja-sim">SIMULACIÓN · sábado de puente, 12:00, con lluvia desde las 15:00</div>
+      <div class="explorar">
+        <div class="lista" id="lista-t2"><h3>Lo que más te conviene ahora · desde el Zócalo de Puebla</h3></div>
+        <div class="mapa" data-componente="Mapa"><svg id="mapa-t2" viewBox="0 0 900 640" role="img" aria-label="Mapa de la zona piloto con el semáforo"></svg><div class="leyenda"><span class="sem verde">Buen momento</span><span class="sem amarillo">Con precaución</span><span class="sem rojo">Mejor después</span><span class="sem sin_dato">Sin dato</span></div><span class="pie">Mapa esquemático · en la app: Leaflet + © OpenStreetMap</span></div>
+      </div>
+    </div></div>
+</section>
+
+<!-- ============ T3 ============ -->
+<section class="pantalla" id="t3">
+  <h2>T3 — Tarjeta del punto · CU_03</h2>
+  <p class="nota">GET /api/puntos/zona_arq_cholula/estado. La razón (RN_03) y la confianza (RN_09) siempre visibles; "Mejor ve a…" aparece porque el punto está en rojo.</p>
+  <div class="ventana"><div class="ventana-barra"><span class="puntos"><span></span><span></span><span></span></span><span class="url">http://192.168.43.10:8000/punto/zona_arq_cholula</span></div>
+    <div class="app">
+      <header class="app-cabecera"><div class="logo">[Nombre del proyecto]<small>Puebla · Cholula · Atlixco</small></div><nav aria-label="Secciones"><a href="#t2" data-ir="t2" class="actual">Explorar</a><a href="#t6" data-ir="t6">Asistente</a><a href="#g1" data-ir="g1">Panel de gobierno</a><a href="#a1" data-ir="a1">Acerca de</a></nav><div class="escenario" data-componente="SelectorEscenario"><label for="esc">Escenario</label><select id="esc"><option>Ahora (datos en vivo)</option><option selected>Sábado de puente, 12:00, con lluvia</option></select></div></header>
+      <div class="franja-sim">SIMULACIÓN · sábado de puente, 12:00, con lluvia desde las 15:00</div>
+      <div class="explorar con-panel">
+        <div class="lista difuminado" id="lista-t3"><h3>Lo que más te conviene ahora</h3></div>
+        <div class="mapa" data-componente="Mapa"><svg id="mapa-t3" viewBox="0 0 900 640" role="img" aria-label="Mapa"></svg><div class="leyenda"><span class="sem verde">Buen momento</span><span class="sem amarillo">Con precaución</span><span class="sem rojo">Mejor después</span><span class="sem sin_dato">Sin dato</span></div><span class="pie">Mapa esquemático · en la app: Leaflet + © OpenStreetMap</span></div>
+        <aside class="lateral" data-componente="TarjetaPunto">
+          <div class="confianza">Zona arqueológica · San Andrés Cholula · INAH</div>
+          <h3>Zona Arqueológica de Cholula (Gran Pirámide)</h3>
+          <span class="sem rojo">Mejor después</span>
+          <ul class="razones">
+            <li>Afluencia estimada <b>muy alta</b> (sábado de puente, 12:00)</li>
+            <li><b>70%</b> de probabilidad de lluvia a las 15:00 · al aire libre</li>
+            <li>Traslado: <b>45 min</b> con el tráfico actual (normalmente 25)</li>
+          </ul>
+          <p class="confianza"><b>Estimado</b> · normalmente muy lleno los sábados a esta hora · 2 reportes en la última hora</p>
+          <div class="etiqueta">Clima por hora</div>
+          <div class="horas"><div>12:00<br>☁ 10%</div><div>13:00<br>☁ 20%</div><div>14:00<br>☁ 40%</div><div>15:00<br>🌧 70%</div><div>16:00<br>🌧 80%</div><div>17:00<br>🌧 60%</div></div>
+          <div class="etiqueta">Visita</div>
+          <p style="margin:0">Horario: <i>por verificar</i> · Tiempo sugerido: 2 h</p>
+          <p style="color:var(--tx2);font-size:14px">Basamento piramidal con el mayor volumen conocido del mundo; túneles, plazas y museo de sitio. El punto más visitado de los recintos INAH de Puebla.</p>
+          <div class="acciones">
+            <a class="boton primario" href="#t4" data-ir="t4">Mejor ve a… →</a>
+            <a class="boton" href="#t5" data-ir="t5">📍 Estoy aquí</a>
+          </div>
+          <p class="ilustrativo">Cifras ilustrativas: las calcula el modelo de afluencia.</p>
+        </aside>
+      </div>
+    </div></div>
+</section>
+
+<!-- ============ T4 ============ -->
+<section class="pantalla" id="t4">
+  <h2>T4 — "Mejor ve a…" · CU_04</h2>
+  <p class="nota">POST /api/recomendar → alternativa + razón; "Vamos" llama a /api/busquedas/{id}/aceptar y abre "Cómo llegar" (enlace a Google Maps, sin API). Nunca recomienda un punto en rojo (RN_02).</p>
+  <div class="ventana"><div class="ventana-barra"><span class="puntos"><span></span><span></span><span></span></span><span class="url">http://192.168.43.10:8000/punto/zona_arq_cholula/alternativa</span></div>
+    <div class="app">
+      <header class="app-cabecera"><div class="logo">[Nombre del proyecto]<small>Puebla · Cholula · Atlixco</small></div><nav aria-label="Secciones"><a href="#t2" data-ir="t2" class="actual">Explorar</a><a href="#t6" data-ir="t6">Asistente</a><a href="#g1" data-ir="g1">Panel de gobierno</a><a href="#a1" data-ir="a1">Acerca de</a></nav><div class="escenario" data-componente="SelectorEscenario"><label for="esc">Escenario</label><select id="esc"><option>Ahora (datos en vivo)</option><option selected>Sábado de puente, 12:00, con lluvia</option></select></div></header>
+      <div class="franja-sim">SIMULACIÓN · sábado de puente, 12:00, con lluvia desde las 15:00</div>
+      <div style="flex:1;overflow:auto;padding:28px 48px" data-componente="Recomendacion">
+        <h1 style="margin:0 0 4px;font-size:26px">Ahora no conviene la Gran Pirámide. Mejor ve a Tonantzintla.</h1>
+        <p style="color:var(--tx2);margin-top:0">Se parece a lo que buscas (historia y arte), está a 12 min de Cholula y es techado.</p>
+        <div class="comparacion">
+          <div class="tarjeta">
+            <div class="confianza">Lo que pediste</div>
+            <h3 style="margin:4px 0 8px">Zona Arqueológica de Cholula (Gran Pirámide)</h3>
+            <span class="sem rojo">Mejor después</span>
+            <ul class="razones"><li>Muy lleno a esta hora</li><li>Lluvia desde las 15:00, al aire libre</li><li>45 min con tráfico</li></ul>
+          </div>
+          <div class="flecha" aria-hidden="true">→</div>
+          <div class="tarjeta" style="border:2px solid var(--tx)">
+            <div class="confianza">Te recomendamos</div>
+            <h3 style="margin:4px 0 8px">Santa María Tonantzintla</h3>
+            <span class="sem verde">Buen momento</span>
+            <ul class="razones"><li>Afluencia <b>baja</b> · techado (no te mojas)</li><li><b>30 min</b> desde donde estás</li><li>Mismo tipo de experiencia: historia y arte barroco indígena</li></ul>
+            <p style="color:var(--tx2);font-size:14px">Iglesia con interior barroco indígena policromado, con rostros, frutos y flores tallados; a minutos de Cholula y mucho menos concurrida.</p>
+          </div>
+        </div>
+        <div class="tip">💡 Para la pirámide: regresa el <b>lunes a las 10:00</b>, cuando la afluencia estimada baja. A 5 min de Tonantzintla está <b>San Francisco Acatepec</b>: puedes ver las dos.</div>
+        <div class="acciones">
+          <a class="boton primario" href="https://www.google.com/maps/dir/?api=1&destination=19.0297735,-98.3196104" target="_blank" rel="noopener">Vamos · Cómo llegar ↗</a>
+          <a class="boton" href="#t3" data-ir="t3">Prefiero mi plan</a>
+        </div>
+        <div class="etiqueta" style="margin-top:22px">Otras opciones parecidas</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div class="tarjeta" style="flex:1"><b>Museo Amparo</b><br><span class="sem verde">Buen momento</span> <span class="confianza">arte prehispánico · techado · 8 min</span></div>
+          <div class="tarjeta" style="flex:1"><b>Exconvento de Huejotzingo</b><br><span class="sem verde">Buen momento</span> <span class="confianza">historia · techado · 45 min</span></div>
+        </div>
+      </div>
+    </div></div>
+</section>
+
+<!-- ============ T5 ============ -->
+<section class="pantalla" id="t5">
+  <h2>T5 — "¿Cómo está?" · CU_05</h2>
+  <p class="nota">POST /api/reportes. Solo después de "Estoy aquí" (RN_04). Debajo: la confirmación y el mensaje de límite (RN_05).</p>
+  <div class="ventana"><div class="ventana-barra"><span class="puntos"><span></span><span></span><span></span></span><span class="url">http://192.168.43.10:8000/punto/tonantzintla/reporte</span></div>
+    <div class="app">
+      <header class="app-cabecera"><div class="logo">[Nombre del proyecto]<small>Puebla · Cholula · Atlixco</small></div><nav aria-label="Secciones"><a href="#t2" data-ir="t2" class="actual">Explorar</a><a href="#t6" data-ir="t6">Asistente</a><a href="#g1" data-ir="g1">Panel de gobierno</a><a href="#a1" data-ir="a1">Acerca de</a></nav><div class="escenario" data-componente="SelectorEscenario"><label for="esc">Escenario</label><select id="esc"><option>Ahora (datos en vivo)</option><option selected>Sábado de puente, 12:00, con lluvia</option></select></div></header>
+      <div class="explorar" style="position:relative">
+        <div class="lista difuminado" id="lista-t5"><h3>Lo que más te conviene ahora</h3></div>
+        <div class="mapa difuminado"><svg id="mapa-t5" viewBox="0 0 900 640" role="img" aria-label="Mapa"></svg></div>
+        <div class="modal-capa">
+          <div class="tarjeta modal" data-componente="BotonReporte">
+            <div class="confianza">📍 Estás en</div>
+            <h3 style="margin:2px 0 4px;font-size:22px">Santa María Tonantzintla</h3>
+            <p style="margin:0;color:var(--tx2)">¿Cómo está ahorita? Tu respuesta ayuda a quien viene detrás.</p>
+            <div class="reporte-botones">
+              <button class="verde">✓<span>Vacío</span></button>
+              <button class="amarillo">!<span>Normal</span></button>
+              <button class="rojo">✕<span>Lleno</span></button>
+            </div>
+            <label style="display:block;margin-top:12px;font-size:14px">¿Cuánto esperaste para entrar? (opcional)
+              <select style="min-height:40px;margin-left:6px;border:1px solid var(--g3);border-radius:6px"><option>Nada</option><option>Menos de 15 min</option><option>15–30 min</option><option>Más de 30 min</option></select>
+            </label>
+            <div class="etiqueta">Después de reportar</div>
+            <div class="exito">✓ ¡Gracias! Tu reporte ya cuenta. Tonantzintla sigue en <span class="sem verde">Buen momento</span></div>
+            <div class="etiqueta">Si vuelve a reportar el mismo lugar</div>
+            <div class="limite">Ya reportaste este lugar. Podrás volver a hacerlo en 30 min.</div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+</section>
+
+<!-- ============ T6 ============ -->
+<section class="pantalla" id="t6">
+  <h2>T6 — Asistente · CU_06</h2>
+  <p class="nota">POST /api/chat → respuesta + fuentes[] + estado_usado[]. Solo responde con nuestros datos y cita la fuente (RN_10).</p>
+  <div class="ventana"><div class="ventana-barra"><span class="puntos"><span></span><span></span><span></span></span><span class="url">http://192.168.43.10:8000/asistente</span></div>
+    <div class="app">
+      <header class="app-cabecera"><div class="logo">[Nombre del proyecto]<small>Puebla · Cholula · Atlixco</small></div><nav aria-label="Secciones"><a href="#t2" data-ir="t2">Explorar</a><a href="#t6" data-ir="t6" class="actual">Asistente</a><a href="#g1" data-ir="g1">Panel de gobierno</a><a href="#a1" data-ir="a1">Acerca de</a></nav><div class="escenario" data-componente="SelectorEscenario"><label for="esc">Escenario</label><select id="esc"><option>Ahora (datos en vivo)</option><option selected>Sábado de puente, 12:00, con lluvia</option></select></div></header>
+      <div class="franja-sim">SIMULACIÓN · sábado de puente, 12:00, con lluvia desde las 15:00</div>
+      <div class="explorar con-panel" style="grid-template-columns: 360px 1fr 560px">
+        <div class="lista difuminado" id="lista-t6"><h3>Lo que más te conviene ahora</h3></div>
+        <div class="mapa difuminado"><svg id="mapa-t6" viewBox="0 0 900 640" role="img" aria-label="Mapa"></svg></div>
+        <aside class="lateral" data-componente="Chat">
+          <div class="chat">
+            <h3>Asistente</h3>
+            <div class="mensajes">
+              <div class="msg usuario">Estoy en el zócalo, tengo 4 horas y va a llover. ¿Qué hago?</div>
+              <div class="msg asistente">
+                Como va a llover desde las 15:00, te propongo lugares <b>techados</b> y con poca gente:
+                <ol style="margin:6px 0;padding-left:20px">
+                  <li><b>Museo Amparo</b>, a 8 min a pie. Afluencia normal; arte prehispánico y virreinal.</li>
+                  <li><b>Casa del Alfeñique</b>, a 7 min. Poca gente.</li>
+                  <li>Si quieres salir del centro: <b>Santa María Tonantzintla</b> (30 min), techada y con afluencia baja.</li>
+                </ol>
+                Hoy evitaría la <b>Zona Arqueológica de Cholula</b>: está muy llena y es al aire libre.
+                <div class="fuentes"><span>Catálogo de la zona piloto</span><span>Open-Meteo · 12:00</span><span>Afluencia estimada + 14 reportes</span><span>Traslados OpenRouteService</span></div>
+                <details><summary>Datos que usó el asistente</summary>
+                  <table><tr><th>Punto</th><th>Estado</th><th>Techado</th><th>Traslado</th></tr>
+                    <tr><td>Museo Amparo</td><td><span class="sem verde">Buen momento</span></td><td>Sí</td><td>8 min</td></tr>
+                    <tr><td>Casa del Alfeñique</td><td><span class="sem verde">Buen momento</span></td><td>Sí</td><td>7 min</td></tr>
+                    <tr><td>Zona Arq. de Cholula</td><td><span class="sem rojo">Mejor después</span></td><td>No</td><td>45 min</td></tr>
+                  </table>
+                </details>
+              </div>
+            </div>
+            <div class="sugeridas"><span>¿Qué hay para niños?</span><span>¿Dónde como algo típico cerca?</span><span>¿Cuándo conviene la pirámide?</span></div>
+            <div class="entrada"><input placeholder="Pregúntame sobre Puebla, Cholula o Atlixco…" aria-label="Pregunta"><button class="boton primario">Enviar</button></div>
+            <p class="ilustrativo">Respuesta ilustrativa: en la app la redacta Qwen3 en la laptop, solo con los datos recuperados.</p>
+          </div>
+        </aside>
+      </div>
+    </div></div>
+</section>
+
+<!-- ============ G1 ============ -->
+<section class="pantalla" id="g1">
+  <h2>G1 — Panel de gobierno · CU_07</h2>
+  <p class="nota">GET /api/panel/afluencia, /redirecciones, /derrama, /semaforo-estatal. Solo agregados (RN_12); derrama en dos cifras con su supuesto (RN_14).</p>
+  <div class="ventana"><div class="ventana-barra"><span class="puntos"><span></span><span></span><span></span></span><span class="url">http://192.168.43.10:8000/panel</span></div>
+    <div class="app">
+      <header class="app-cabecera"><div class="logo">[Nombre del proyecto]<small>Puebla · Cholula · Atlixco</small></div><nav aria-label="Secciones"><a href="#t2" data-ir="t2">Explorar</a><a href="#t6" data-ir="t6">Asistente</a><a href="#g1" data-ir="g1" class="actual">Panel de gobierno</a><a href="#a1" data-ir="a1">Acerca de</a></nav><div class="escenario" data-componente="SelectorEscenario"><label for="esc">Escenario</label><select id="esc"><option>Ahora (datos en vivo)</option><option selected>Sábado de puente, 12:00, con lluvia</option></select></div></header>
+      <div class="franja-sim">SIMULACIÓN · sábado de puente, 12:00, con lluvia desde las 15:00</div>
+      <div class="panel">
+        <div class="kpis" data-componente="Derrama">
+          <div class="tarjeta kpi"><div class="etiqueta" style="margin-top:0">Redirecciones aceptadas hoy</div><div class="valor">148</div><div class="sub">de 236 recomendaciones (63%)</div></div>
+          <div class="tarjeta kpi"><div class="etiqueta" style="margin-top:0">Derrama redistribuida</div><div class="valor">$255,300</div><div class="sub">148 × $1,725 por visitante</div></div>
+          <div class="tarjeta kpi destacado"><div class="etiqueta" style="margin-top:0">Derrama nueva estimada</div><div class="valor">$70,725</div><div class="sub">41 paradas agregadas × $1,725</div></div>
+          <div class="tarjeta kpi"><div class="etiqueta" style="margin-top:0">Reportes de turistas</div><div class="valor">312</div><div class="sub">287 válidos · 25 descartados</div></div>
+        </div>
+        <div class="tarjeta" data-componente="MapaCalor">
+          <h3 style="margin:0 0 8px">Afluencia ahora (estimada + reportes)</h3>
+          <div class="mini-mapa"><svg id="mapa-g1" viewBox="0 0 900 640" style="width:100%;height:100%" role="img" aria-label="Mapa de calor"></svg></div>
+        </div>
+        <div class="tarjeta" data-componente="Redirecciones">
+          <h3 style="margin:0 0 8px">¿A dónde se fueron los turistas?</h3>
+          <table>
+            <tr><th>De</th><th>A</th><th>Turistas</th><th>Motivo</th></tr>
+            <tr><td>Zona Arq. de Cholula</td><td>Santa María Tonantzintla</td><td>52</td><td>Afluencia + lluvia</td></tr>
+            <tr><td>Capilla del Rosario</td><td>Casa del Alfeñique</td><td>31</td><td>Fila</td></tr>
+            <tr><td>Callejón de los Sapos</td><td>Museo Amparo</td><td>27</td><td>Lluvia</td></tr>
+            <tr><td>Zona Arq. de Cholula</td><td>Exconvento de Huejotzingo</td><td>20</td><td>Afluencia</td></tr>
+            <tr><td>Santuario de los Remedios</td><td>Cerro de San Miguel</td><td>18</td><td>Lluvia</td></tr>
+          </table>
+        </div>
+        <div class="tarjeta">
+          <h3 style="margin:0 0 8px">Semáforo estatal · pronóstico de noviembre</h3>
+          <div class="estatal" id="estatal"></div>
+        </div>
+        <div class="tarjeta" data-componente="FijarColor">
+          <h3 style="margin:0 0 4px">Fijar el color de un lugar</h3>
+          <p class="confianza" style="margin:0 0 10px">Para cierres, obras o filas que el modelo no ve. Gana sobre el cálculo hasta la hora de fin y se muestra con su motivo (RN_16).</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <select style="min-height:40px;border:1px solid var(--g3);border-radius:8px;padding:0 8px"><option>Capilla del Rosario</option></select>
+            <select style="min-height:40px;border:1px solid var(--g3);border-radius:8px;padding:0 8px"><option>Hasta hoy 18:00</option></select>
+            <input value="Cerrado por evento privado" style="grid-column:1/-1;min-height:40px;border:1px solid var(--g3);border-radius:8px;padding:0 10px" aria-label="Motivo">
+          </div>
+          <div style="display:flex;gap:6px;margin:10px 0"><span class="sem verde">Buen momento</span><span class="sem amarillo">Con precaución</span><span class="sem rojo" style="outline:2px solid var(--rojo)">Mejor después</span></div>
+          <button class="boton primario">Fijar color</button>
+          <div class="etiqueta">Ajustes vigentes</div>
+          <div class="item" style="margin:0"><div class="fila"><span class="nombre">Capilla del Rosario</span><span class="sem rojo">Mejor después</span></div><div class="razon">Cerrado por evento privado · hasta hoy 18:00 · <a href="#g1">Quitar</a></div></div>
+        </div>
+        <div class="tarjeta" data-componente="Umbrales">
+          <h3 style="margin:0 0 4px">Umbrales por lugar</h3>
+          <p class="confianza" style="margin:0 0 8px">Cada lugar se compara con su propia historia (percentiles 60 y 85). Sin historia suficiente, cortes generales 0.9 y 1.3.</p>
+          <table>
+            <tr><th>Lugar</th><th>Verde bajo</th><th>Rojo sobre</th><th>Método</th></tr>
+            <tr><td>Zona Arq. de Cholula</td><td>1.05</td><td>1.42</td><td>Percentil (36 meses)</td></tr>
+            <tr><td>Exconvento de Huejotzingo</td><td>0.96</td><td>1.21</td><td>Percentil (36 meses)</td></tr>
+            <tr><td>Museo Amparo</td><td>0.90</td><td>1.30</td><td>General</td></tr>
+            <tr><td>Africam Safari</td><td colspan="3"><span class="sem sin_dato">Sin dato</span> sin historia de afluencia</td></tr>
+          </table>
+          <p class="ilustrativo">Valores ilustrativos: los calcula `turismo_core/semaforo.py`.</p>
+        </div>
+        <div class="tarjeta">
+          <h3 style="margin:0 0 8px">Cómo leer la derrama</h3>
+          <p style="margin:0 0 6px"><b>Redistribuida:</b> dinero que llegó a otro destino porque el turista aceptó la alternativa.</p>
+          <p style="margin:0 0 6px"><b>Nueva estimada:</b> paradas que el turista <i>agregó</i> a su plan (aceptó la alternativa y además visitó su destino original después). Es gasto adicional en el estado.</p>
+          <p class="ilustrativo">Gasto por visitante: promedio por llegada de los destinos secundarios, Observatorio Turístico 2025 (cálculo propio). Cifras de esta pantalla: ilustrativas.</p>
+        </div>
+      </div>
+    </div></div>
+</section>
+
+<!-- ============ A1 ============ -->
+<section class="pantalla" id="a1">
+  <h2>A1 — Acerca de y privacidad · RN_07, RN_13</h2>
+  <p class="nota">Atribuciones obligatorias por licencia y aviso de privacidad corto.</p>
+  <div class="ventana"><div class="ventana-barra"><span class="puntos"><span></span><span></span><span></span></span><span class="url">http://192.168.43.10:8000/acerca</span></div>
+    <div class="app">
+      <header class="app-cabecera"><div class="logo">[Nombre del proyecto]<small>Puebla · Cholula · Atlixco</small></div><nav aria-label="Secciones"><a href="#t2" data-ir="t2">Explorar</a><a href="#t6" data-ir="t6">Asistente</a><a href="#g1" data-ir="g1">Panel de gobierno</a><a href="#a1" data-ir="a1" class="actual">Acerca de</a></nav><div class="escenario" data-componente="SelectorEscenario"><label for="esc">Escenario</label><select id="esc"><option>Ahora (datos en vivo)</option><option selected>Sábado de puente, 12:00, con lluvia</option></select></div></header>
+      <div class="acerca">
+        <div>
+          <h2 style="margin-top:0">Qué es</h2>
+          <p>Una app que te dice a dónde ir <b>ahora</b> en Puebla, Cholula y Atlixco, y un panel para que la Secretaría de Turismo reparta mejor los flujos y el gasto de los visitantes.</p>
+          <p>Hecha por Angel Rugerio Jiménez, Axel García Arellano y Diego Navarro Sánchez (IBERO Puebla), con la tutoría del Mtro. Rafael Pérez Aguirre, para el hackathon "Puebla Turística 360°".</p>
+          <h2>Datos y atribuciones</h2>
+          <ul>
+            <li>Mapa y lugares: © colaboradores de OpenStreetMap, licencia ODbL.</li>
+            <li>Clima: Open-Meteo, licencia CC BY 4.0.</li>
+            <li>Establecimientos: DENUE, INEGI.</li>
+            <li>Museos: Sistema de Información Cultural, Secretaría de Cultura.</li>
+            <li>Ocupación, llegadas y derrama: Observatorio Turístico, Secretaría de Desarrollo Turístico de Puebla.</li>
+            <li>Visitas a recintos: estadísticas del INAH.</li>
+            <li>Traslados: OpenRouteService.</li>
+          </ul>
+        </div>
+        <div>
+          <h2 style="margin-top:0">Aviso de privacidad (versión corta)</h2>
+          <ul>
+            <li><b>Sin registro:</b> no pedimos nombre, correo ni teléfono.</li>
+            <li>Tu sesión es un código aleatorio.</li>
+            <li><b>No guardamos tu ubicación</b>; solo la distancia al lugar cuando reportas.</li>
+            <li>A la Secretaría de Turismo solo le llegan <b>totales por lugar y hora</b>, nunca tus reportes individuales.</li>
+            <li>Las preguntas al asistente se procesan en nuestro equipo, sin enviarse a terceros.</li>
+          </ul>
+          <p class="ilustrativo">Texto a revisar contra la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (DOF 20/03/2025).</p>
+          <h2>Qué no hace esta app</h2>
+          <p>No resuelve infraestructura, seguridad ni señalización de los destinos. La afluencia es una <b>estimación</b> que mejora con cada reporte; no es un conteo exacto.</p>
+        </div>
+      </div>
+    </div></div>
+</section>
+
+<script>
+// ===== Datos =====
+// PUNTOS sale de catalogo/puntos_zona_piloto.csv (borrador, sin verificar).
+const PUNTOS = [{"id": "catedral", "nombre": "Catedral y Zócalo de Puebla", "destino": "Cd. Puebla", "tipo": "templo", "interior": "1", "lat": "19.04248", "lon": "-98.1985", "duracion_sugerida": "1-2 h"}, {"id": "capilla_rosario", "nombre": "Capilla del Rosario (Templo de Santo Domingo)", "destino": "Cd. Puebla", "tipo": "templo", "interior": "1", "lat": "19.0465575", "lon": "-98.1983117", "duracion_sugerida": "30-60 min"}, {"id": "palafoxiana", "nombre": "Biblioteca Palafoxiana", "destino": "Cd. Puebla", "tipo": "museo", "interior": "1", "lat": "19.0425", "lon": "-98.1988", "duracion_sugerida": "30-60 min"}, {"id": "museo_amparo", "nombre": "Museo Amparo", "destino": "Cd. Puebla", "tipo": "museo", "interior": "1", "lat": "19.04067", "lon": "-98.19873", "duracion_sugerida": "1-2 h"}, {"id": "callejon_sapos", "nombre": "Callejón de los Sapos", "destino": "Cd. Puebla", "tipo": "calle", "interior": "0", "lat": "19.04134", "lon": "-98.19555", "duracion_sugerida": "1 h"}, {"id": "barrio_artista", "nombre": "Barrio del Artista y El Parián", "destino": "Cd. Puebla", "tipo": "mercado", "interior": "0", "lat": "19.0440295", "lon": "-98.19237726", "duracion_sugerida": "1 h"}, {"id": "casa_alfenique", "nombre": "Casa del Alfeñique", "destino": "Cd. Puebla", "tipo": "museo", "interior": "1", "lat": "19.04376", "lon": "-98.1933", "duracion_sugerida": "45 min"}, {"id": "barrio_xanenetla", "nombre": "Barrio de Xanenetla", "destino": "Cd. Puebla", "tipo": "barrio", "interior": "0", "lat": "19.0529056", "lon": "-98.1891781", "duracion_sugerida": "1 h"}, {"id": "fuertes", "nombre": "Zona de los Fuertes (Loreto y Guadalupe)", "destino": "Cd. Puebla", "tipo": "museo", "interior": "0", "lat": "19.05713", "lon": "-98.18704", "duracion_sugerida": "2 h"}, {"id": "museo_barroco", "nombre": "Museo Internacional del Barroco", "destino": "Cd. Puebla", "tipo": "museo", "interior": "1", "lat": "19.01966287", "lon": "-98.24700187", "duracion_sugerida": "1-2 h"}, {"id": "estrella_puebla", "nombre": "Estrella de Puebla", "destino": "Cd. Puebla", "tipo": "mirador", "interior": "1", "lat": "19.03403029", "lon": "-98.23244723", "duracion_sugerida": "45 min"}, {"id": "zona_arq_cholula", "nombre": "Zona Arqueológica de Cholula (Gran Pirámide)", "destino": "San Andrés Cholula", "tipo": "zona_arqueologica", "interior": "0", "lat": "19.05796", "lon": "-98.30223", "duracion_sugerida": "2 h"}, {"id": "remedios", "nombre": "Santuario de la Virgen de los Remedios", "destino": "San Andrés Cholula", "tipo": "templo", "interior": "0", "lat": "19.05832", "lon": "-98.30167", "duracion_sugerida": "45 min"}, {"id": "san_gabriel", "nombre": "Exconvento de San Gabriel y Capilla Real", "destino": "San Pedro Cholula", "tipo": "templo", "interior": "1", "lat": "19.06225", "lon": "-98.30511", "duracion_sugerida": "45 min"}, {"id": "tonantzintla", "nombre": "Santa María Tonantzintla", "destino": "San Andrés Cholula", "tipo": "templo", "interior": "1", "lat": "19.0297735", "lon": "-98.3196104", "duracion_sugerida": "30-45 min"}, {"id": "acatepec", "nombre": "San Francisco Acatepec", "destino": "San Andrés Cholula", "tipo": "templo", "interior": "1", "lat": "19.0225351", "lon": "-98.30908218", "duracion_sugerida": "30 min"}, {"id": "huejotzingo", "nombre": "Exconvento de Huejotzingo", "destino": "Huejotzingo", "tipo": "templo", "interior": "1", "lat": "19.1585385", "lon": "-98.4044411", "duracion_sugerida": "1-2 h"}, {"id": "atlixco_centro", "nombre": "Centro de Atlixco", "destino": "Atlixco", "tipo": "pueblo_magico", "interior": "0", "lat": "18.90972", "lon": "-98.43421", "duracion_sugerida": "2-3 h"}, {"id": "cerro_san_miguel", "nombre": "Cerro de San Miguel", "destino": "Atlixco", "tipo": "mirador", "interior": "0", "lat": "18.91279624", "lon": "-98.43792937", "duracion_sugerida": "1 h"}, {"id": "africam", "nombre": "Africam Safari", "destino": "Cd. Puebla", "tipo": "parque", "interior": "0", "lat": "18.93725", "lon": "-98.13681", "duracion_sugerida": "3-4 h"}];
+// Escenario ilustrativo "sábado de puente, 12:00, con lluvia": estado, razón corta y traslado desde el Zócalo.
+const ESTADO = {
+  zona_arq_cholula: ['rojo', 'Muy lleno · lluvia a las 15:00, al aire libre', 45],
+  remedios:         ['rojo', 'Muy lleno · al aire libre con lluvia', 45],
+  capilla_rosario:  ['rojo', 'Cerrado por evento privado hasta las 18:00', 10, 'Cerrado por evento privado hasta las 18:00'],
+  catedral:         ['amarillo', 'Más gente de lo normal', 8],
+  callejon_sapos:   ['amarillo', 'Al aire libre: lluvia desde las 15:00', 6],
+  barrio_artista:   ['amarillo', 'Al aire libre: lluvia desde las 15:00', 7],
+  palafoxiana:      ['amarillo', 'Cupo limitado; algo de fila', 9],
+  barrio_xanenetla: ['amarillo', 'Tranquilo, pero al aire libre con lluvia', 12],
+  fuertes:          ['amarillo', 'Al aire libre: lluvia desde las 15:00', 15],
+  san_gabriel:      ['amarillo', 'Más gente de lo normal por el puente', 40],
+  africam:          ['sin_dato', 'Sin estimación de afluencia para este lugar', 35],
+  museo_amparo:     ['verde', 'Techado · afluencia normal', 8],
+  casa_alfenique:   ['verde', 'Techado · poca gente', 7],
+  museo_barroco:    ['verde', 'Techado · afluencia baja', 20],
+  estrella_puebla:  ['verde', 'Cabinas cerradas · sin fila', 22],
+  tonantzintla:     ['verde', 'Techado · afluencia baja', 30],
+  acatepec:         ['verde', 'Techado · afluencia baja', 32],
+  huejotzingo:      ['verde', 'Techado · afluencia baja', 45],
+  atlixco_centro:   ['verde', 'Soleado hasta las 18:00 · afluencia normal', 40],
+  cerro_san_miguel: ['verde', 'Soleado · vista despejada', 42],
+};
+const TEXTO = { verde: 'Buen momento', amarillo: 'Con precaución', rojo: 'Mejor después', sin_dato: 'Sin dato' };
+const COLOR = { verde: '#14662E', amarillo: '#B07A00', rojo: '#9E1C14', sin_dato: '#6B7280' };
+const ORDEN = { verde: 0, amarillo: 1, rojo: 2, sin_dato: 3 };
+const ICONO = { verde: '✓', amarillo: '!', rojo: '✕', sin_dato: '?' };
+const ESTATAL = [
+  ['Cd. Puebla','rojo'],['San Pedro Cholula','rojo'],['San Andrés Cholula','rojo'],['Cholula','rojo'],
+  ['Atlixco','amarillo'],['Zacatlán','amarillo'],['Chignahuapan','amarillo'],['Cuetzalan','amarillo'],
+  ['Huejotzingo','verde'],['Acatzingo','verde'],['Tepeaca','verde'],['Pahuatlán','verde'],['Tetela de Ocampo','verde'],
+  ['Huauchinango','verde'],['Izúcar de Matamoros','verde'],['San Martín Texmelucan','verde'],['Tehuacán','verde'],
+  ['Teziutlán','verde'],['Tlatlauquitepec','verde'],['Xicotepec','verde'],
+];
+
+// ===== Lista ordenada por conveniencia (componente Mapa + lista de T2) =====
+function chip(sem) { return `<span class="sem ${sem}">${TEXTO[sem]}</span>`; }
+function pintarLista(id, marcado) {
+  const cont = document.getElementById(id);
+  if (!cont) return;
+  const orden = [...PUNTOS].sort((a, b) => ORDEN[ESTADO[a.id][0]] - ORDEN[ESTADO[b.id][0]] || ESTADO[a.id][2] - ESTADO[b.id][2]);
+  for (const p of orden) {
+    const [sem, razon, min, ajuste] = ESTADO[p.id];
+    const div = document.createElement('div');
+    div.className = 'item' + (p.id === marcado ? ' marcado' : '');
+    div.innerHTML = `<div class="fila"><span class="nombre">${p.nombre}</span>${chip(sem)}</div>
+      <div class="razon">${razon} · ${min} min</div>
+      <div class="razon">${p.destino} · <span class="confianza">${sem === 'sin_dato' ? 'sin estimación' : (sem === 'verde' ? 'confirmado por turistas' : 'estimado')}</span></div>${ajuste ? '<span class="ajuste">Ajustado por la Secretaría</span>' : ''}`;
+    cont.appendChild(div);
+  }
+}
+
+// ===== Mapa esquemático (SVG). En la app: Leaflet + OpenStreetMap =====
+const CAJA = { lonMin: -98.47, lonMax: -98.11, latMin: 18.88, latMax: 19.18 };
+function xy(p) {
+  return [ (parseFloat(p.lon) - CAJA.lonMin) / (CAJA.lonMax - CAJA.lonMin) * 900,
+           (CAJA.latMax - parseFloat(p.lat)) / (CAJA.latMax - CAJA.latMin) * 640 ];
+}
+function pintarMapa(id, modo, marcado) {
+  const svg = document.getElementById(id);
+  if (!svg) return;
+  const ns = 'http://www.w3.org/2000/svg';
+  const add = (tag, attrs, texto) => { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (texto) e.textContent = texto; svg.appendChild(e); return e; };
+  add('rect', { x: 0, y: 0, width: 900, height: 640, fill: '#EDEDED' });
+  // Carreteras esquemáticas
+  // Carreteras esquemáticas entre coordenadas reales (Puebla–Cholula–Huejotzingo, Puebla–Atlixco, Puebla–Valsequillo)
+  const ruta = (pts) => 'M ' + pts.map(([lon, lat]) => xy({ lon, lat }).join(' ')).join(' L ');
+  for (const r of [[[-98.198, 19.043], [-98.303, 19.062], [-98.407, 19.160]],
+                   [[-98.198, 19.043], [-98.235, 19.025], [-98.330, 18.965], [-98.436, 18.908]],
+                   [[-98.198, 19.043], [-98.135, 18.942]]]) {
+    add('path', { d: ruta(r), stroke: '#CFCFCF', 'stroke-width': 9, fill: 'none', 'stroke-linecap': 'round' });
+  }
+  for (const [t, lon, lat] of [['PUEBLA', -98.215, 19.075], ['CHOLULA', -98.31, 19.085], ['ATLIXCO', -98.44, 18.93], ['HUEJOTZINGO', -98.43, 19.135]]) {
+    const [x, y] = xy({ lon, lat });
+    add('text', { x, y, fill: '#9A9A9A', 'font-size': 18, 'font-weight': 700, 'letter-spacing': 2 }, t);
+  }
+  for (const p of PUNTOS) {
+    const [x, y] = xy(p);
+    const [sem] = ESTADO[p.id];
+    if (modo === 'calor') {
+      const r = { rojo: 34, amarillo: 22, verde: 12, sin_dato: 8 }[sem];
+      add('circle', { cx: x, cy: y, r, fill: COLOR[sem], 'fill-opacity': .35 });
+    }
+    const g = add('g', {});
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', p.id === marcado ? 13 : 9);
+    c.setAttribute('fill', COLOR[sem]); c.setAttribute('stroke', p.id === marcado ? '#111' : '#FFF'); c.setAttribute('stroke-width', p.id === marcado ? 4 : 2);
+    const titulo = document.createElementNS(ns, 'title'); titulo.textContent = `${p.nombre}: ${TEXTO[sem]}`;
+    c.appendChild(titulo); g.appendChild(c);
+    const ic = document.createElementNS(ns, 'text');
+    ic.setAttribute('x', x); ic.setAttribute('y', y + 4); ic.setAttribute('text-anchor', 'middle'); ic.setAttribute('font-size', 11); ic.setAttribute('font-weight', 800); ic.setAttribute('fill', '#FFF');
+    ic.textContent = ICONO[sem]; g.appendChild(ic);
+  }
+  // Recuadro ampliado: centro histórico de Puebla (a escala de la zona, los puntos se enciman).
+  // Marcadores numerados en su posición + lista de nombres. En la app real lo resuelve el zoom de Leaflet.
+  const C = { lonMin: -98.2010, lonMax: -98.1860, latMin: 19.0385, latMax: 19.0585, x: 560, y: 12, w: 330, h: 300 };
+  const mapaX = C.x + 150, mapaW = C.w - 160;   // la mitad derecha del recuadro es el mapa; la izquierda, la lista
+  const xyC = (p) => [mapaX + (parseFloat(p.lon) - C.lonMin) / (C.lonMax - C.lonMin) * mapaW, C.y + 30 + (C.latMax - parseFloat(p.lat)) / (C.latMax - C.latMin) * (C.h - 45)];
+  const [px, py] = xy({ lon: -98.195, lat: 19.047 });
+  add('line', { x1: px, y1: py, x2: C.x, y2: C.y + C.h, stroke: '#888', 'stroke-dasharray': '6 5', 'stroke-width': 1.5 });
+  add('rect', { x: C.x, y: C.y, width: C.w, height: C.h, fill: '#F7F7F7', stroke: '#888', 'stroke-width': 1.5, rx: 6 });
+  add('text', { x: C.x + 10, y: C.y + 20, 'font-size': 13, 'font-weight': 700, fill: '#555' }, 'CENTRO DE PUEBLA');
+  const corto = (n) => n.split(' (')[0].replace('Catedral y Zócalo de Puebla', 'Catedral y Zócalo').replace('Zona de los Fuertes', 'Fuertes').replace('Barrio del Artista y El Parián', 'Barrio del Artista');
+  const centro = PUNTOS.filter(p => p.destino === 'Cd. Puebla' && parseFloat(p.lat) >= C.latMin && parseFloat(p.lat) <= C.latMax && parseFloat(p.lon) >= C.lonMin && parseFloat(p.lon) <= C.lonMax);
+  const colocados = [];
+  centro.forEach((p, i) => {
+    let [x, y] = xyC(p); const [sem] = ESTADO[p.id];
+    while (colocados.some(([cx, cy]) => Math.hypot(cx - x, cy - y) < 20)) x += 20;
+    colocados.push([x, y]);
+    const c = add('circle', { cx: x, cy: y, r: 9, fill: COLOR[sem], stroke: '#FFF', 'stroke-width': 2 });
+    const tt = document.createElementNS(ns, 'title'); tt.textContent = `${p.nombre}: ${TEXTO[sem]}`; c.appendChild(tt);
+    add('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 800, fill: '#FFF' }, String(i + 1));
+    add('text', { x: C.x + 12, y: C.y + 44 + i * 22, 'font-size': 12, fill: '#333' }, `${i + 1}  ${corto(p.nombre)}`);
+  });
+  if (marcado) {
+    const p = PUNTOS.find(q => q.id === marcado); const [x, y] = xy(p);
+    add('text', { x: x + 16, y: y - 12, 'font-size': 15, 'font-weight': 700, fill: '#222' }, p.nombre);
+  }
+}
+
+// ===== Semáforo estatal =====
+const est = document.getElementById('estatal');
+for (const [d, s] of ESTATAL) { const div = document.createElement('div'); div.innerHTML = `<span>${d}</span>${chip(s)}`; est.appendChild(div); }
+
+pintarLista('lista-t2'); pintarMapa('mapa-t2');
+pintarLista('lista-t3', 'zona_arq_cholula'); pintarMapa('mapa-t3', null, 'zona_arq_cholula');
+pintarLista('lista-t5'); pintarMapa('mapa-t5', null, 'tonantzintla');
+pintarLista('lista-t6'); pintarMapa('mapa-t6');
+pintarMapa('mapa-g1', 'calor');
+
+// ===== Navegación entre pantallas de la maqueta =====
+function ir(id) {
+  document.querySelectorAll('.pantalla').forEach(s => s.classList.toggle('activa', s.id === id));
+  document.querySelectorAll('.maqueta-nav button').forEach(b => b.setAttribute('aria-current', b.dataset.ir === id));
+  history.replaceState(null, '', '#' + id);
+}
+document.querySelectorAll('[data-ir]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); ir(el.dataset.ir); }));
+ir((location.hash || '#t1').slice(1));
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+[project]
+name = "puebla-ahora-backend"
+version = "0.1.0"
+description = "Backend de Puebla Ahora: turismo_core, FastAPI y servidor MCP"
+requires-python = ">=3.12"
+dependencies = [
+    "chromadb>=1.5.9",
+    "fastapi>=0.143.2",
+    "mcp>=1.20,<2",
+    "pypdf>=6.20.1",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient`", "ignore::DeprecationWarning:chromadb.*"]
