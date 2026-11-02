@@ -6,6 +6,8 @@
 backend/data/raw/
 backend/data/puebla.db
 backend/data/puebla.db-*
+backend/data/desarrollo.db
+backend/data/desarrollo.db-*
 backend/data/chroma/
 
 # Python

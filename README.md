@@ -53,6 +53,27 @@ npm run dev                                         # http://localhost:5173
 
 Requisitos: Python ≥ 3.12 con [`uv`](https://docs.astral.sh/uv/), Node ≥ 22.12 y, para el asistente, [Ollama](https://ollama.com) con `qwen3:4b` y `bge-m3`.
 
+### Desarrollo sin los datos reales
+
+Para trabajar en la interfaz en cualquier computadora, sin `.env` ni `data/raw/`, hay una base de desarrollo. [`herramientas/bd_desarrollo.py`](herramientas/bd_desarrollo.py) corre el mismo pipeline del backend con los datos ya procesados que vienen en git: los 23 lugares reales, sus horarios, los eventos y la afluencia estimada de los próximos 14 días.
+
+```bash
+cd backend
+uv run python ../herramientas/bd_desarrollo.py      # crea data/desarrollo.db (no se sube a git)
+DATABASE_URL=sqlite:///data/desarrollo.db PUEBLA_TAREAS=0 uv run uvicorn app.main:app --reload --port 8000
+
+cd frontend && npm run dev                          # en otra terminal, igual que siempre
+```
+
+Diferencias con la base real:
+
+- **Traslados aproximados:** se calculan con la distancia en línea recta, porque OpenRouteService necesita una clave.
+- **Sin clima ni tráfico:** el semáforo los toma como "sin lluvia" y "sin tráfico".
+- **Sin asistente:** sin Ollama, el asistente responde que no está disponible.
+- **Hay que regenerarla:** la afluencia solo cubre 14 días; después, se vuelve a correr la herramienta.
+
+**La demo y las pruebas con usuarios se hacen con la base real**, en la laptop que tiene los datos.
+
 ## Uso de inteligencia artificial
 
 Usamos asistentes de IA (Claude Code) para investigar, depurar y apoyar la programación, como permite la guía del proyecto. Cada integrante debe poder explicar y modificar su parte del código sin IA. El asistente del turista usa un modelo de lenguaje local que responde solo con los datos de la app y cita sus fuentes.
