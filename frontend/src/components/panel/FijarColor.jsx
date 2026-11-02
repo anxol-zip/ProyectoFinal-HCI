@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { hora } from '../../data/formato.js'
-import { ICONO } from '../../data/semaforo.js'
+import IconoEstado from '../IconoEstado.jsx'
 import SelectorLugar from '../SelectorLugar.jsx'
 import Semaforo from '../Semaforo.jsx'
 
@@ -55,7 +55,7 @@ function FijarColor({ puntos, ajustes, onFijar, onQuitar }) {
         <div className="colores" role="group" aria-label="Color">
           {COLORES.map(([c, nombre]) => (
             <button key={c} type="button" className={`color-opcion ${c}`} aria-pressed={color === c} onClick={() => setColor(c)}>
-              <span className="sem-icono" aria-hidden="true">{ICONO[c]}</span>{nombre}
+              <IconoEstado color={c} />{nombre}
             </button>
           ))}
         </div>

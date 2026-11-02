@@ -6,12 +6,15 @@ import 'leaflet/dist/leaflet.css'
 import './index.css'
 import App from './App.jsx'
 import { ProveedorIdioma } from './i18n/Idioma.jsx'
+import { ProveedorPreferencias } from './preferencias/Preferencias.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <ProveedorIdioma>
-        <App />
+        <ProveedorPreferencias>
+          <App />
+        </ProveedorPreferencias>
       </ProveedorIdioma>
     </BrowserRouter>
   </StrictMode>,

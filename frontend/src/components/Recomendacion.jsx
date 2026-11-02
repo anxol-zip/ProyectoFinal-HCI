@@ -97,7 +97,7 @@ function Recomendacion({ puntoId, sesionId, origenId, catalogo, intereses, onVol
               <p className="suave">{t('rec.pediste')}</p>
               <h3>{pedido.nombre}</h3>
               <Semaforo color={pedido.color} />
-              {partesRazon(pedido.razon, idioma).slice(0, 2).map((r) => <p key={r} className="secundario" style={{ marginTop: 8, fontSize: 14 }}>{r}</p>)}
+              {partesRazon(pedido.razon, idioma).slice(0, 2).map((r) => <p key={r} className="secundario" style={{ marginTop: 8, fontSize: '0.875rem' }}>{r}</p>)}
             </div>
           </div>
         )}

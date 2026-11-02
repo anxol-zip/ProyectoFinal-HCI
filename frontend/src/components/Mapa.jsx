@@ -6,6 +6,7 @@ import CapaCalor from './CapaCalor.jsx'
 import ControlesMapa from './ControlesMapa.jsx'
 import LeyendaMapa from './LeyendaMapa.jsx'
 import { iconoSemaforo } from './marcadores.js'
+import { ESCALA_MARCADOR, usePreferencias } from '../preferencias/contexto.js'
 
 const RADIO_INICIAL_M = 2000     // al entrar: tu ubicación y lo que hay alrededor
 const RADIO_CERCA_M = 800        // el lugar elegido está donde ya estás
@@ -67,6 +68,8 @@ function Camara({ yo, enfoque, margenInferior, gps }) {
 // (Wi-Fi o IP, kilómetros de error) no mueve el mapa: es lo que lo mandaba "a otro lado".
 // Las coordenadas se quedan en el celular: nunca se envían (RN_07).
 function Mapa({ puntos, seleccionadoId, destacadoId, origen, gps, buscando, onUbicar, aviso, margenInferior, onSeleccionar, textos }) {
+  const { letra } = usePreferencias()
+  const tamano = Math.round(34 * ESCALA_MARCADOR[letra])
   const yo = gps ? [gps.lat, gps.lon] : (origen ? [origen.lat, origen.lon] : null)
   const seleccionado = puntos.find((p) => p.id === seleccionadoId)
   const destacado = puntos.find((p) => p.id === destacadoId)
@@ -89,7 +92,7 @@ function Mapa({ puntos, seleccionadoId, destacadoId, origen, gps, buscando, onUb
             <Marker
               key={p.id}
               position={[p.lat, p.lon]}
-              icon={iconoSemaforo(p.color, { seleccionado: elegido || propuesto, propuesto })}
+              icon={iconoSemaforo(p.color, { seleccionado: elegido || propuesto, propuesto, tamano })}
               title={`${p.nombre}: ${textos.semaforo[p.color]}`}
               alt={`${p.nombre}: ${textos.semaforo[p.color]}`}
               zIndexOffset={elegido || propuesto ? 1000 : 0}
