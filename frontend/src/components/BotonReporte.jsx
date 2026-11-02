@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { api } from '../api/cliente.js'
 import Semaforo from './Semaforo.jsx'
-import { ICONO } from '../data/semaforo.js'
+import IconoEstado from './IconoEstado.jsx'
 import { mensajeReporte } from '../i18n/backend.js'
 import { useIdioma } from '../i18n/contexto.js'
 
@@ -37,7 +37,7 @@ function BotonReporte({ punto, sesionId, distanciaM = null, onCerrar, onReportad
     <div className="modal-fondo" role="dialog" aria-modal="true" aria-labelledby="titulo-reporte" onClick={onCerrar}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <p className="suave">{t('rep.estasEn')}</p>
-        <h2 id="titulo-reporte" style={{ fontSize: 24, margin: '2px 0 6px' }}>{punto.nombre}</h2>
+        <h2 id="titulo-reporte" style={{ fontSize: '1.5rem', margin: '2px 0 6px' }}>{punto.nombre}</h2>
 
         {!resultado && (
           <>
@@ -45,7 +45,7 @@ function BotonReporte({ punto, sesionId, distanciaM = null, onCerrar, onReportad
             <div className="niveles">
               {NIVELES.map((n) => (
                 <button key={n.nivel} type="button" className={`nivel ${n.color}`} disabled={enviando} onClick={() => reportar(n.nivel)}>
-                  <span className="sem-icono" aria-hidden="true">{ICONO[n.color]}</span>
+                  <IconoEstado color={n.color} />
                   {t(n.texto)}
                 </button>
               ))}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/cliente.js'
 import { hora, horarioDeHoy, partesRazon, pesos, textoTraslado } from '../data/formato.js'
-import { ICONO } from '../data/semaforo.js'
+import IconoEstado from './IconoEstado.jsx'
 import { ficha } from '../i18n/backend.js'
 import { useIdioma } from '../i18n/contexto.js'
 import Foto from './Foto.jsx'
@@ -84,7 +84,7 @@ function TarjetaPunto({ puntoId, origenId, onVolver, onAlternativa, onEstoyAqui 
             {estado.proximas_horas.slice(0, 8).map((h) => (
               <div key={h.hora} className={`franja-hora ${h.color}`} role="listitem" title={`${hora(h.hora)}: ${t(`sem.${h.color}`)}`}>
                 <span className="numero">{hora(h.hora)}</span>
-                <span className={`marcador mini ${h.color}`} aria-hidden="true">{ICONO[h.color]}</span>
+                <IconoEstado color={h.color} />
                 <span className="oculto-accesible">{t(`sem.${h.color}`)}</span>
               </div>
             ))}

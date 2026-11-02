@@ -12,6 +12,7 @@ import Mapa from '../components/Mapa.jsx'
 import Recomendacion from '../components/Recomendacion.jsx'
 import TarjetaPunto from '../components/TarjetaPunto.jsx'
 import { useHoja } from '../hooks/useHoja.js'
+import { ESCALA_TEXTO, usePreferencias } from '../preferencias/contexto.js'
 
 // El semáforo se vuelve a pedir cada minuto: los reportes de otros turistas lo mueven.
 const RECARGA_MS = 60_000
@@ -64,7 +65,8 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
   const [chatAbierto, setChatAbierto] = useState(false)
   const [version, setVersion] = useState(0)            // sube cuando entra un reporte, para recargar
   const [alternativaId, setAlternativaId] = useState(null)   // "Mejor ve a…": se marca en el mapa
-  const hoja = useHoja()
+  const { letra } = usePreferencias()
+  const hoja = useHoja(ESCALA_TEXTO[letra])
   const { t } = useIdioma()
   const textos = useMemo(() => textosMapa(t), [t])
   const [aviso, setAviso] = useState(null)             // { id, texto } que se muestra sobre el mapa

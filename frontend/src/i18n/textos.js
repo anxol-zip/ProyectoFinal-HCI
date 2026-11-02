@@ -4,6 +4,11 @@ const es = {
   cargando: 'Cargando…',
   'nav.inicio': 'Inicio', 'nav.secciones': 'Secciones', 'nav.explorar': 'Explorar', 'nav.panel': 'Panel', 'nav.acerca': 'Acerca de', 'nav.info': 'Info',
   'idioma.grupo': 'Idioma',
+  'lectura.boton': 'Opciones para ver mejor', 'lectura.titulo': 'Ver mejor',
+  'lectura.letra': 'Tamaño de letra', 'lectura.normal': 'Normal', 'lectura.grande': 'Grande', 'lectura.muy_grande': 'Muy grande',
+  'lectura.colores': 'Colores del semáforo', 'lectura.habituales': 'Habituales', 'lectura.daltonismo': 'Para daltonismo',
+  'lectura.ayudaColores': 'Cada estado tiene además su forma, así se distingue aunque no veas los colores.',
+  'lectura.listo': 'Listo', 'lectura.guardado': 'Se guarda en este dispositivo.',
   envivo: 'En vivo', 'envivo.titulo': 'El semáforo se calcula con la hora real',
 
   'sem.verde': 'Buen momento', 'sem.amarillo': 'Con precaución', 'sem.rojo': 'Mejor después', 'sem.sin_dato': 'Sin dato', 'sem.cerrado': 'Cerrado',
@@ -94,6 +99,11 @@ const en = {
   cargando: 'Loading…',
   'nav.inicio': 'Home', 'nav.secciones': 'Sections', 'nav.explorar': 'Explore', 'nav.panel': 'Dashboard', 'nav.acerca': 'About', 'nav.info': 'About',
   'idioma.grupo': 'Language',
+  'lectura.boton': 'Display options', 'lectura.titulo': 'Easier to see',
+  'lectura.letra': 'Text size', 'lectura.normal': 'Normal', 'lectura.grande': 'Large', 'lectura.muy_grande': 'Extra large',
+  'lectura.colores': 'Traffic-light colors', 'lectura.habituales': 'Standard', 'lectura.daltonismo': 'Color-blind friendly',
+  'lectura.ayudaColores': 'Each status also has its own shape, so you can tell them apart even without colors.',
+  'lectura.listo': 'Done', 'lectura.guardado': 'Saved on this device.',
   envivo: 'Live', 'envivo.titulo': 'The traffic light uses the current time',
 
   'sem.verde': 'Good time', 'sem.amarillo': 'Caution', 'sem.rojo': 'Better later', 'sem.sin_dato': 'No data', 'sem.cerrado': 'Closed',

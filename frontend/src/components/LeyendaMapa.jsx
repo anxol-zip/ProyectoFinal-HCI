@@ -1,5 +1,6 @@
 import { RAMPA } from '../data/calor.js'
-import { ICONO, TEXTO } from '../data/semaforo.js'
+import { TEXTO } from '../data/semaforo.js'
+import IconoEstado from './IconoEstado.jsx'
 
 const ESTADOS = ['verde', 'amarillo', 'rojo', 'cerrado', 'sin_dato']
 const TEXTOS_ES = { titulo: 'Gente ahora', menos: 'Menos', mas: 'Más', semaforo: TEXTO }
@@ -13,7 +14,7 @@ function LeyendaMapa({ className = '', textos = TEXTOS_ES }) {
       <div className="leyenda-extremos"><span>{textos.menos}</span><span>{textos.mas}</span></div>
       <ul className="leyenda-estados">
         {ESTADOS.map((c) => (
-          <li key={c}><span className={`marcador mini ${c}`} aria-hidden="true">{ICONO[c]}</span>{textos.semaforo[c]}</li>
+          <li key={c}><IconoEstado color={c} />{textos.semaforo[c]}</li>
         ))}
       </ul>
     </div>

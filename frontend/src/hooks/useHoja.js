@@ -5,26 +5,29 @@ import { useEffect, useRef, useState } from 'react'
 const MOVIL = '(max-width: 820px)'
 const ORDEN = ['plegada', 'media', 'alta']
 const ASOMADA = 136          // manija + encabezado: se sigue viendo cuántos lugares hay
+const CABECERA = 64          // alto de la cabecera de la app con letra normal
 const UMBRAL_MOVIMIENTO = 6  // px antes de considerar que es arrastre y no toque
 const VELOCIDAD_RAPIDA = 0.5 // px/ms: un deslizamiento rápido avanza un paso aunque sea corto
 
-function medir() {
-  const alto = window.innerHeight
-  return { plegada: ASOMADA, media: Math.round(alto * 0.58), alta: alto - 64 - 56 }
+// `escala` es la del tamaño de letra elegido: con letra grande, el encabezado de la hoja y la
+// cabecera de la app miden más, y la hoja plegada debe seguir mostrándolos completos.
+function medir(alto, escala) {
+  return { plegada: Math.round(ASOMADA * escala), media: Math.round(alto * 0.58), alta: alto - Math.round(CABECERA * escala) - 56 }
 }
 
 const limitar = (v, min, max) => Math.min(max, Math.max(min, v))
 
-export function useHoja() {
+export function useHoja(escala = 1) {
   const [movil, setMovil] = useState(() => window.matchMedia(MOVIL).matches)
-  const [alturas, setAlturas] = useState(medir)
+  const [altoVentana, setAltoVentana] = useState(() => window.innerHeight)
+  const alturas = medir(altoVentana, escala)
   const [estado, setEstado] = useState('media')
   const [arrastre, setArrastre] = useState(null)   // alto en px mientras el dedo la mueve
   const gesto = useRef(null)
 
   useEffect(() => {
     const consulta = window.matchMedia(MOVIL)
-    const actualizar = () => { setMovil(consulta.matches); setAlturas(medir()) }
+    const actualizar = () => { setMovil(consulta.matches); setAltoVentana(window.innerHeight) }
     consulta.addEventListener('change', actualizar)
     window.addEventListener('resize', actualizar)
     return () => {

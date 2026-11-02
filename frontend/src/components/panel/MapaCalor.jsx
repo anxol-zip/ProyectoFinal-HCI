@@ -6,12 +6,15 @@ import ControlesMapa from '../ControlesMapa.jsx'
 import Encuadrar from '../Encuadrar.jsx'
 import LeyendaMapa from '../LeyendaMapa.jsx'
 import { iconoSemaforo } from '../marcadores.js'
+import { ESCALA_MARCADOR, usePreferencias } from '../../preferencias/contexto.js'
 
 // La leyenda ocupa la esquina superior derecha en escritorio.
 const margenesPanel = (t) => (t.x <= 520 ? { arribaIzq: [24, 24], abajoDer: [24, 90] } : { arribaIzq: [24, 24], abajoDer: [230, 24] })
 
 // Afluencia ahora (estimada + reportes): la misma capa de calor y el mismo semáforo que ve el turista.
 function MapaCalor({ puntos }) {
+  const { letra } = usePreferencias()
+  const tamano = Math.round(24 * ESCALA_MARCADOR[letra])
   return (
     <div className="mapa-caja">
       <div className="mapa">
@@ -22,7 +25,7 @@ function MapaCalor({ puntos }) {
             <Marker
               key={p.id}
               position={[p.lat, p.lon]}
-              icon={iconoSemaforo(p.color, { tamano: 24 })}
+              icon={iconoSemaforo(p.color, { tamano })}
               title={`${p.nombre}: ${TEXTO[p.color]}${p.nivel != null ? ` (${p.nivel.toFixed(2)} veces lo normal)` : ''}`}
               alt={`${p.nombre}: ${TEXTO[p.color]}`}
             />
