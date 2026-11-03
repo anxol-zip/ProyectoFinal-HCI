@@ -36,45 +36,26 @@ Se copió **sin historia de git** y sin `backend/.env` (claves) ni `backend/data
 | `backend/` | API en **FastAPI**, `turismo_core` (semáforo, recomendador y reportes), servidor MCP y asistente con Ollama |
 | `catalogo/` | Los lugares de la zona piloto |
 | `docs/` | Propuesta, instrucciones del proyecto y referencias del hackathon |
-| `INSTALAR_LAPTOP.md` | Instalación con los datos reales (`.env` y `data/raw/`), en Windows y Linux |
+| `herramientas/` | `bd_desarrollo.py`: crea la base de desarrollo |
+| `INSTALACION.md` | Cómo correrlo, en modo de desarrollo o con los datos reales, en Windows y Linux |
 
 ## Cómo correrlo
 
-La app no tiene datos propios: todo lo pide al backend. Este necesita dos cosas que no vienen en git y se copian a mano: `backend/.env` y la base de datos, que se genera desde `backend/data/raw/` con el pipeline. Los pasos completos están en [`INSTALAR_LAPTOP.md`](INSTALAR_LAPTOP.md).
+La guía completa, para Windows y Linux, está en [`INSTALACION.md`](INSTALACION.md). Hay dos modos:
+
+- **Desarrollo:** para trabajar en la interfaz en cualquier computadora. Usa la base de desarrollo que viene en git (`backend/data/desarrollo.db`), creada con [`herramientas/bd_desarrollo.py`](herramientas/bd_desarrollo.py) a partir de los datos procesados del repositorio. No necesita `.env` ni `data/raw/`.
+- **Datos reales:** para la demo, la presentación y las pruebas con usuarios. Necesita `backend/.env` y `backend/data/raw/`, que se copian a mano, y Ollama para el asistente.
+
+Inicio rápido en modo de desarrollo (Linux; en Windows, ver la guía):
 
 ```bash
-cd backend
-uv run uvicorn app.main:app --reload --port 8000    # API; Swagger en http://localhost:8000/docs
+cd backend && uv sync
+DATABASE_URL=sqlite:///data/desarrollo.db PUEBLA_TAREAS=0 uv run uvicorn app.main:app --reload --port 8000
 
-cd frontend                                         # en otra terminal
-npm install                                         # solo la primera vez
-npm run dev                                         # http://localhost:5173
+cd frontend && npm ci && npm run dev                # en otra terminal → http://localhost:5173
 ```
 
 Requisitos: Python ≥ 3.12 con [`uv`](https://docs.astral.sh/uv/), Node ≥ 22.12 y, para el asistente, [Ollama](https://ollama.com) con `qwen3:4b` y `bge-m3`.
-
-### Desarrollo sin los datos reales
-
-Para trabajar en la interfaz en cualquier computadora, sin `.env` ni `data/raw/`, hay una base de desarrollo. [`herramientas/bd_desarrollo.py`](herramientas/bd_desarrollo.py) corre el mismo pipeline del backend con los datos ya procesados que vienen en git: los 23 lugares reales, sus horarios, los eventos y la afluencia estimada de los próximos 14 días.
-
-La base ya viene en git (`backend/data/desarrollo.db`), así que basta con clonar. Solo se regenera cuando se vence la afluencia (la versión actual cubre del 29 de octubre al 11 de noviembre de 2026). Es solo para el desarrollo: se quita del repositorio en el merge a `main` de la versión 1.0.
-
-```bash
-cd backend
-uv run python ../herramientas/bd_desarrollo.py      # solo si hay que regenerar data/desarrollo.db
-DATABASE_URL=sqlite:///data/desarrollo.db PUEBLA_TAREAS=0 uv run uvicorn app.main:app --reload --port 8000
-
-cd frontend && npm run dev                          # en otra terminal, igual que siempre
-```
-
-Diferencias con la base real:
-
-- **Traslados aproximados:** se calculan con la distancia en línea recta, porque OpenRouteService necesita una clave.
-- **Sin clima ni tráfico:** el semáforo los toma como "sin lluvia" y "sin tráfico".
-- **Sin asistente:** sin Ollama, el asistente responde que no está disponible.
-- **Hay que regenerarla:** la afluencia solo cubre 14 días; después, se vuelve a correr la herramienta y se commitea la base nueva.
-
-**La demo y las pruebas con usuarios se hacen con la base real**, en la laptop que tiene los datos.
 
 ## Uso de inteligencia artificial
 
