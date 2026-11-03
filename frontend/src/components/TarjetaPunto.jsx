@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../api/cliente.js'
 import { hora, horarioDeHoy, partesRazon, pesos, textoTraslado } from '../data/formato.js'
 import IconoEstado from './IconoEstado.jsx'
@@ -28,10 +28,12 @@ function actualizacion(datos, t) {
 }
 
 // T3 — Tarjeta del punto (CU_03): qué es, si conviene ir, por qué y cuándo conviene más.
-function TarjetaPunto({ puntoId, origenId, onVolver, onAlternativa, onEstoyAqui }) {
+// onCargado(título): Turista mueve ahí el foco cuando la ficha se abrió desde la lista (D6).
+function TarjetaPunto({ puntoId, origenId, onVolver, onAlternativa, onEstoyAqui, onCargado }) {
   const { idioma, t } = useIdioma()
   const [estado, setEstado] = useState(null)
   const [error, setError] = useState(null)
+  const titulo = useRef(null)
 
   useEffect(() => {
     let vigente = true
@@ -40,6 +42,10 @@ function TarjetaPunto({ puntoId, origenId, onVolver, onAlternativa, onEstoyAqui 
       .catch((e) => { if (vigente) setError(e.message) })
     return () => { vigente = false }
   }, [puntoId, origenId])
+
+  useEffect(() => {
+    if (estado) onCargado?.(titulo.current)
+  }, [estado, onCargado])
 
   if (error) return <p className="aviso info">{error}</p>
   if (!estado || estado.id !== puntoId) return <p className="suave">{t('cargando')}</p>
@@ -54,7 +60,7 @@ function TarjetaPunto({ puntoId, origenId, onVolver, onAlternativa, onEstoyAqui 
       <button type="button" className="boton-texto" onClick={onVolver}>{t('ficha.volver')}</button>
       <Foto id={estado.clave} nombre={estado.nombre} credito />
       <p className="suave" style={{ marginTop: 12 }}>{estado.destino}{estado.es_inah ? t('ficha.inah') : ''}</p>
-      <h2>{estado.nombre}</h2>
+      <h2 id="ficha-titulo" ref={titulo} tabIndex={-1}>{estado.nombre}</h2>
       <Semaforo color={estado.color} grande />
       {estado.ajuste_manual && <p style={{ marginTop: 10 }}><span className="ajuste-etiqueta">{t('ficha.ajustado', { motivo: estado.ajuste_manual })}</span></p>}
       {(estado.vs_normal === 'mas_lleno' || estado.vs_normal === 'menos_lleno') && (

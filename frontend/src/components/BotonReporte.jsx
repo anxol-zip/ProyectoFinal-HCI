@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { api } from '../api/cliente.js'
 import Semaforo from './Semaforo.jsx'
 import IconoEstado from './IconoEstado.jsx'
 import { mensajeReporte } from '../i18n/backend.js'
 import { useIdioma } from '../i18n/contexto.js'
+import { useDialogo } from '../hooks/useDialogo.js'
 
 const NIVELES = [
   { nivel: 1, color: 'verde', texto: 'rep.vacio' },
@@ -18,6 +19,9 @@ function BotonReporte({ punto, sesionId, distanciaM = null, onCerrar, onReportad
   const [resultado, setResultado] = useState(null)
   const [error, setError] = useState(null)
   const [enviando, setEnviando] = useState(false)
+  const caja = useRef(null)
+  // Ventana modal (D6): el foco entra, Tab no se sale y Escape la cierra.
+  useDialogo(caja, onCerrar, { atrapar: true, respaldo: '#ficha-titulo' })
 
   async function reportar(nivel) {
     setEnviando(true)
@@ -35,7 +39,7 @@ function BotonReporte({ punto, sesionId, distanciaM = null, onCerrar, onReportad
 
   return (
     <div className="modal-fondo" role="dialog" aria-modal="true" aria-labelledby="titulo-reporte" onClick={onCerrar}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal" ref={caja} onClick={(e) => e.stopPropagation()}>
         <p className="suave">{t('rep.estasEn')}</p>
         <h2 id="titulo-reporte" style={{ fontSize: '1.5rem', margin: '2px 0 6px' }}>{punto.nombre}</h2>
 
