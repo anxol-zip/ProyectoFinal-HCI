@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api/cliente.js'
 import { distanciaM, masCercano } from '../data/geo.js'
 import { ORDEN } from '../data/semaforo.js'
@@ -6,11 +6,13 @@ import { useUbicacion } from '../hooks/useUbicacion.js'
 import { useIdioma } from '../i18n/contexto.js'
 import BotonReporte from '../components/BotonReporte.jsx'
 import Chat from '../components/Chat.jsx'
+import FiltrosLugares from '../components/FiltrosLugares.jsx'
 import Inicio from '../components/Inicio.jsx'
 import ListaPuntos from '../components/ListaPuntos.jsx'
 import Mapa from '../components/Mapa.jsx'
 import Recomendacion from '../components/Recomendacion.jsx'
 import TarjetaPunto from '../components/TarjetaPunto.jsx'
+import TodosLosLugares from '../components/TodosLosLugares.jsx'
 import { useHoja } from '../hooks/useHoja.js'
 import { ESCALA_TEXTO, usePreferencias } from '../preferencias/contexto.js'
 
@@ -47,6 +49,13 @@ function ordenar(puntos, intereses) {
   return [...puntos].sort((a, b) => ORDEN[a.color] - ORDEN[b.color] || coincide(a) - coincide(b))
 }
 
+// Filtros de la barra (D4): por destino y "solo lo que me gusta" (los intereses del inicio).
+const SIN_FILTRO = { destino: null, gustos: false }
+function filtrar(puntos, filtro, intereses) {
+  return puntos.filter((p) => (filtro.destino === null || p.destino === filtro.destino)
+    && (!filtro.gustos || p.categorias.some((c) => intereses.includes(c))))
+}
+
 function resumen(puntos, t) {
   const verdes = puntos.filter((p) => p.color === 'verde').length
   if (verdes === 1) return t('resumen.uno')
@@ -65,6 +74,14 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
   const [chatAbierto, setChatAbierto] = useState(false)
   const [version, setVersion] = useState(0)            // sube cuando entra un reporte, para recargar
   const [alternativaId, setAlternativaId] = useState(null)   // "Mejor ve a…": se marca en el mapa
+  const [ampliada, setAmpliada] = useState(false)      // barra lateral con todos los lugares (D4)
+  const [filtro, setFiltro] = useState(SIN_FILTRO)
+  // Foco (D6): al abrir una ficha desde la lista va a su título; al volver, a la tarjeta de ese lugar.
+  const panel = useRef(null)
+  const enfocarFicha = useRef(false)
+  const volverA = useRef(null)
+  const botonAsistente = useRef(null)
+  const chatPrevio = useRef(false)
   const { letra } = usePreferencias()
   const hoja = useHoja(ESCALA_TEXTO[letra])
   const { t } = useIdioma()
@@ -121,6 +138,7 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
   }
 
   function seleccionar(id) {
+    enfocarFicha.current = true
     setSeleccionadoId(id)
     setAlternativaId(null)
     setVista('punto')
@@ -128,12 +146,40 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
   }
 
   function volverALista() {
+    volverA.current = seleccionadoId
     setVista('lista')
     setSeleccionadoId(null)
     setAlternativaId(null)
   }
 
-  const ordenados = ordenar(puntos, sesion?.perfil.intereses ?? [])
+  function alternarAmpliada() {
+    if (!ampliada && hoja.movil) hoja.expandir()      // en celular, la hoja sube hasta arriba
+    setAmpliada((a) => !a)
+  }
+
+  const alCargarFicha = useCallback((titulo) => {
+    if (!enfocarFicha.current) return
+    enfocarFicha.current = false
+    titulo?.focus()
+  }, [])
+
+  useEffect(() => {
+    if (vista !== 'lista' || volverA.current == null) return
+    panel.current?.querySelector(`[data-punto="${volverA.current}"]`)?.focus()
+    volverA.current = null
+  }, [vista, ampliada])
+
+  // Al cerrar el asistente, el foco vuelve al botón que lo abrió.
+  useEffect(() => {
+    if (chatPrevio.current && !chatAbierto) botonAsistente.current?.focus()
+    chatPrevio.current = chatAbierto
+  }, [chatAbierto])
+
+  const intereses = sesion?.perfil.intereses ?? []
+  const visibles = filtrar(puntos, filtro, intereses)
+  const ordenados = ordenar(visibles, intereses)
+  const destinos = [...new Set(catalogo.map((p) => p.destino))]
+  const filtroActivo = [filtro.destino, filtro.gustos && t('filtros.gustos')].filter(Boolean).join(' · ')
   const seleccionado = puntos.find((p) => p.id === seleccionadoId)
   const origen = catalogo.find((p) => p.id === origenId)
   // Distancia del GPS al lugar que se reporta (solo el número; la ubicación no sale del celular).
@@ -148,24 +194,13 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
 
   return (
     <>
-      <Mapa
-        puntos={puntos}
-        seleccionadoId={seleccionadoId}
-        destacadoId={alternativaId}
-        origen={origen}
-        gps={gpsConfiable}
-        buscando={ubicacion.estado === 'buscando'}
-        onUbicar={ubicacion.pedir}
-        aviso={aviso}
-        margenInferior={hoja.movil ? hoja.alto : 0}
-        onSeleccionar={seleccionar}
-        textos={textos}
-      />
-
+      {/* El panel va antes que el mapa en el HTML: con teclado se llega primero a la lista y no a
+          los 23 marcadores (D6). En pantalla no cambia nada: los dos tienen posición absoluta. */}
       <section
-        className={`panel-flotante${hoja.arrastrando ? ' arrastrando' : ''}`}
+        ref={panel}
+        className={`panel-flotante${hoja.arrastrando ? ' arrastrando' : ''}${vista === 'lista' && ampliada ? ' ampliada' : ''}`}
         style={hoja.movil ? { height: hoja.alto } : undefined}
-        aria-label="Lugares"
+        aria-label={t('lista.region')}
       >
         <div className="zona-arrastre" {...hoja.zona}>
           <button
@@ -179,9 +214,14 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
           </button>
           {vista === 'lista' && (
             <div className="panel-encabezado">
-              <h2>{t('lista.titulo')}</h2>
+              <div className="encabezado-fila">
+                <h2>{t('lista.titulo')}</h2>
+                <button type="button" className="boton-ampliar" aria-expanded={ampliada} onClick={alternarAmpliada}>
+                  <span aria-hidden="true">{ampliada ? '⤡' : '⤢'}</span> {ampliada ? t('todos.cerrar') : t('todos.ver')}
+                </button>
+              </div>
               <p className="suave">{t('lista.desde', { lugar: origen?.nombre ?? t('lista.tuUbicacion') })}</p>
-              <p className="resumen">{puntos.length > 0 ? resumen(puntos, t) : t('resumen.cargando')}</p>
+              <p className="resumen" aria-live="polite">{puntos.length > 0 ? resumen(visibles, t) : t('resumen.cargando')}</p>
             </div>
           )}
         </div>
@@ -189,7 +229,23 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
         {vista === 'lista' && (
           <div className="panel-cuerpo">
             {error && <p className="aviso info">{error}</p>}
-            <ListaPuntos puntos={ordenados} seleccionadoId={seleccionadoId} onSeleccionar={seleccionar} />
+            {/* Los filtros completos van en la vista ampliada, donde caben en uno o dos renglones; en la
+                lista angosta solo se avisa si hay uno activo, para que la lista no quede escondida. */}
+            {ampliada && <FiltrosLugares destinos={destinos} filtro={filtro} onFiltro={setFiltro} hayGustos={intereses.length > 0} />}
+            {!ampliada && filtroActivo && (
+              <p className="filtro-activo">
+                {t('filtros.activo', { filtro: filtroActivo })}
+                <button type="button" className="boton-texto" onClick={() => setFiltro(SIN_FILTRO)}>{t('filtros.quitar')}</button>
+              </p>
+            )}
+            {puntos.length > 0 && visibles.length === 0 && (
+              <p className="aviso info sin-resultados">
+                {t('filtros.vacio')} <button type="button" className="boton-texto" onClick={() => setFiltro(SIN_FILTRO)}>{t('filtros.quitar')}</button>
+              </p>
+            )}
+            {ampliada
+              ? <TodosLosLugares puntos={ordenados} seleccionadoId={seleccionadoId} onSeleccionar={seleccionar} />
+              : <ListaPuntos puntos={ordenados} seleccionadoId={seleccionadoId} onSeleccionar={seleccionar} />}
           </div>
         )}
 
@@ -202,6 +258,7 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
               onVolver={volverALista}
               onAlternativa={() => setVista('recomendacion')}
               onEstoyAqui={() => setReportando(true)}
+              onCargado={alCargarFicha}
             />
           </div>
         )}
@@ -222,8 +279,23 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
         )}
       </section>
 
+      <Mapa
+        puntos={visibles}
+        seleccionadoId={seleccionadoId}
+        destacadoId={alternativaId}
+        origen={origen}
+        gps={gpsConfiable}
+        buscando={ubicacion.estado === 'buscando'}
+        onUbicar={ubicacion.pedir}
+        aviso={aviso}
+        margenInferior={hoja.movil ? hoja.alto : 0}
+        onSeleccionar={seleccionar}
+        textos={textos}
+      />
+
       {!chatAbierto && hoja.asistenteVisible && (
         <button
+          ref={botonAsistente}
           type="button"
           className={`boton-asistente${hoja.arrastrando ? ' arrastrando' : ''}`}
           style={hoja.movil ? { bottom: hoja.alto + 12 } : undefined}

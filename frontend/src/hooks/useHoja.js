@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 // encabezado y se acomoda en tres alturas. En escritorio no hace nada (panel lateral).
 const MOVIL = '(max-width: 820px)'
 const ORDEN = ['plegada', 'media', 'alta']
-const ASOMADA = 136          // manija + encabezado: se sigue viendo cuántos lugares hay
+const ASOMADA = 156          // manija (44 px, D5) + encabezado: se sigue viendo cuántos lugares hay
 const CABECERA = 64          // alto de la cabecera de la app con letra normal
 const UMBRAL_MOVIMIENTO = 6  // px antes de considerar que es arrastre y no toque
 const VELOCIDAD_RAPIDA = 0.5 // px/ms: un deslizamiento rápido avanza un paso aunque sea corto
@@ -84,6 +84,8 @@ export function useHoja(escala = 1) {
     // La manija alterna entre plegada y media; también funciona con teclado.
     alternar: () => setEstado((e) => (e === 'plegada' ? 'media' : 'plegada')),
     mostrar: () => setEstado((e) => (e === 'plegada' ? 'media' : e)),
+    // "Ver todos los lugares" en celular: la hoja sube hasta arriba.
+    expandir: () => setEstado('alta'),
     zona,
     asistenteVisible: estado !== 'alta' || arrastre !== null,
   }

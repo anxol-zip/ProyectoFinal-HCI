@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { api } from '../api/cliente.js'
 import { useIdioma } from '../i18n/contexto.js'
+import { useDialogo } from '../hooks/useDialogo.js'
 import Semaforo from './Semaforo.jsx'
 
 // El modelo cita sus fuentes como [punto-12]; en pantalla se numeran [1], [2]… en el orden
@@ -16,6 +17,9 @@ function Chat({ sesionId, origenId, onCerrar }) {
   const [mensajes, setMensajes] = useState([{ de: 'asistente', clave: 'chat.hola' }])
   const [texto, setTexto] = useState('')
   const [pensando, setPensando] = useState(false)
+  const caja = useRef(null)
+  // Al abrir, el foco va al campo de la pregunta; Escape cierra (D6). No es modal: el mapa sigue usable.
+  useDialogo(caja, onCerrar, { inicial: 'input' })
 
   async function preguntar(pregunta) {
     if (pregunta.trim().length < 3 || pensando) return
@@ -40,7 +44,7 @@ function Chat({ sesionId, origenId, onCerrar }) {
   }
 
   return (
-    <aside className="chat" aria-label="Asistente">
+    <aside className="chat" ref={caja} aria-label={t('chat.titulo')}>
       <div className="chat-encabezado">
         <span className="orbe" aria-hidden="true" />
         <div>
