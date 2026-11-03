@@ -36,7 +36,7 @@ Se copió **sin historia de git** y sin `backend/.env` (claves) ni `backend/data
 | `backend/` | API en **FastAPI**, `turismo_core` (semáforo, recomendador y reportes), servidor MCP y asistente con Ollama |
 | `catalogo/` | Los lugares de la zona piloto |
 | `docs/` | Propuesta, instrucciones del proyecto y referencias del hackathon |
-| `INSTALAR_LAPTOP.md` | Guía de instalación del hackathon (Windows); se adaptará a este repositorio |
+| `INSTALAR_LAPTOP.md` | Instalación con los datos reales (`.env` y `data/raw/`), en Windows y Linux |
 
 ## Cómo correrlo
 
@@ -57,9 +57,11 @@ Requisitos: Python ≥ 3.12 con [`uv`](https://docs.astral.sh/uv/), Node ≥ 22.
 
 Para trabajar en la interfaz en cualquier computadora, sin `.env` ni `data/raw/`, hay una base de desarrollo. [`herramientas/bd_desarrollo.py`](herramientas/bd_desarrollo.py) corre el mismo pipeline del backend con los datos ya procesados que vienen en git: los 23 lugares reales, sus horarios, los eventos y la afluencia estimada de los próximos 14 días.
 
+La base ya viene en git (`backend/data/desarrollo.db`), así que basta con clonar. Solo se regenera cuando se vence la afluencia (la versión actual cubre del 29 de octubre al 11 de noviembre de 2026). Es solo para el desarrollo: se quita del repositorio en el merge a `main` de la versión 1.0.
+
 ```bash
 cd backend
-uv run python ../herramientas/bd_desarrollo.py      # crea data/desarrollo.db (no se sube a git)
+uv run python ../herramientas/bd_desarrollo.py      # solo si hay que regenerar data/desarrollo.db
 DATABASE_URL=sqlite:///data/desarrollo.db PUEBLA_TAREAS=0 uv run uvicorn app.main:app --reload --port 8000
 
 cd frontend && npm run dev                          # en otra terminal, igual que siempre
@@ -70,7 +72,7 @@ Diferencias con la base real:
 - **Traslados aproximados:** se calculan con la distancia en línea recta, porque OpenRouteService necesita una clave.
 - **Sin clima ni tráfico:** el semáforo los toma como "sin lluvia" y "sin tráfico".
 - **Sin asistente:** sin Ollama, el asistente responde que no está disponible.
-- **Hay que regenerarla:** la afluencia solo cubre 14 días; después, se vuelve a correr la herramienta.
+- **Hay que regenerarla:** la afluencia solo cubre 14 días; después, se vuelve a correr la herramienta y se commitea la base nueva.
 
 **La demo y las pruebas con usuarios se hacen con la base real**, en la laptop que tiene los datos.
 

@@ -3,10 +3,10 @@
 *.env
 
 # Datos crudos oficiales (41 MB) y bases que se regeneran con el pipeline del backend
+# (desarrollo.db sí se versiona hasta la v1.0; solo se ignoran sus archivos temporales)
 backend/data/raw/
 backend/data/puebla.db
 backend/data/puebla.db-*
-backend/data/desarrollo.db
 backend/data/desarrollo.db-*
 backend/data/chroma/
 
