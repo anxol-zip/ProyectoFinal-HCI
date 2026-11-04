@@ -9,6 +9,9 @@ const es = {
   'lectura.colores': 'Colores del semáforo', 'lectura.habituales': 'Habituales', 'lectura.daltonismo': 'Para daltonismo',
   'lectura.ayudaColores': 'Cada estado tiene además su forma, así se distingue aunque no veas los colores.',
   'lectura.listo': 'Listo', 'lectura.guardado': 'Se guarda en este dispositivo.',
+  'lectura.contraste': 'Contraste', 'lectura.contraste_normal': 'Normal', 'lectura.contraste_alto': 'Alto',
+  'lectura.voz': 'Lectura en voz alta', 'lectura.voz_normal': 'Normal', 'lectura.voz_lenta': 'Más lenta',
+  'voz.escuchar': 'Escuchar', 'voz.detener': 'Detener',
   envivo: 'En vivo', 'envivo.titulo': 'El semáforo se calcula con la hora real',
 
   'sem.verde': 'Buen momento', 'sem.amarillo': 'Con precaución', 'sem.rojo': 'Mejor después', 'sem.sin_dato': 'Sin dato', 'sem.cerrado': 'Cerrado',
@@ -108,6 +111,9 @@ const en = {
   'lectura.colores': 'Traffic-light colors', 'lectura.habituales': 'Standard', 'lectura.daltonismo': 'Color-blind friendly',
   'lectura.ayudaColores': 'Each status also has its own shape, so you can tell them apart even without colors.',
   'lectura.listo': 'Done', 'lectura.guardado': 'Saved on this device.',
+  'lectura.contraste': 'Contrast', 'lectura.contraste_normal': 'Normal', 'lectura.contraste_alto': 'High',
+  'lectura.voz': 'Read aloud', 'lectura.voz_normal': 'Normal', 'lectura.voz_lenta': 'Slower',
+  'voz.escuchar': 'Listen', 'voz.detener': 'Stop',
   envivo: 'Live', 'envivo.titulo': 'The traffic light uses the current time',
 
   'sem.verde': 'Good time', 'sem.amarillo': 'Caution', 'sem.rojo': 'Better later', 'sem.sin_dato': 'No data', 'sem.cerrado': 'Closed',

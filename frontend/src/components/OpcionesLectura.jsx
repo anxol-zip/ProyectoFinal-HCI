@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { useIdioma } from '../i18n/contexto.js'
-import { COLORES, TAMANOS, usePreferencias } from '../preferencias/contexto.js'
+import { COLORES, CONTRASTES, TAMANOS, usePreferencias, VOCES } from '../preferencias/contexto.js'
 import IconoEstado from './IconoEstado.jsx'
 
 const MUESTRA = ['verde', 'amarillo', 'rojo']
+const HAY_VOZ = typeof window !== 'undefined' && 'speechSynthesis' in window
 
-// Botón "Aa" de la cabecera: tamaño de letra, colores del semáforo e idioma, visible en todas las
+// Botón "Aa" de la cabecera: tamaño de letra, colores, contraste, voz e idioma, visible en todas las
 // pantallas (en celular con letra grande, el idioma solo cabe aquí). Se cierra con Escape, con
 // "Listo" o tocando fuera, y el foco vuelve al botón.
 function OpcionesLectura() {
   const { idioma, setIdioma, t } = useIdioma()
-  const { letra, setLetra, colores, setColores } = usePreferencias()
+  const { letra, setLetra, colores, setColores, contraste, setContraste, voz, setVoz } = usePreferencias()
   const [abierto, setAbierto] = useState(false)
   const boton = useRef(null)
   const panel = useRef(null)
@@ -82,6 +83,26 @@ function OpcionesLectura() {
             ))}
           </div>
           <p className="ayuda">{t('lectura.ayudaColores')}</p>
+
+          <p className="etiqueta" id="etiqueta-contraste">{t('lectura.contraste')}</p>
+          <div className="idiomas" role="group" aria-labelledby="etiqueta-contraste">
+            {CONTRASTES.map((c) => (
+              <button key={c} type="button" aria-pressed={contraste === c} onClick={() => setContraste(c)}>
+                {t(`lectura.contraste_${c}`)}
+              </button>
+            ))}
+          </div>
+
+          {HAY_VOZ && (
+            <>
+              <p className="etiqueta" id="etiqueta-voz">{t('lectura.voz')}</p>
+              <div className="idiomas" role="group" aria-labelledby="etiqueta-voz">
+                {VOCES.map((v) => (
+                  <button key={v} type="button" aria-pressed={voz === v} onClick={() => setVoz(v)}>{t(`lectura.voz_${v}`)}</button>
+                ))}
+              </div>
+            </>
+          )}
 
           <p className="etiqueta" id="etiqueta-idioma">Idioma · Language</p>
           <div className="idiomas" role="group" aria-labelledby="etiqueta-idioma">

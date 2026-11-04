@@ -82,6 +82,7 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
   const volverA = useRef(null)
   const botonAsistente = useRef(null)
   const chatPrevio = useRef(false)
+  const [panelAncho, setPanelAncho] = useState(400)    // para que el mapa encuadre a la derecha del panel
   const { letra } = usePreferencias()
   const hoja = useHoja(ESCALA_TEXTO[letra])
   const { t } = useIdioma()
@@ -169,6 +170,15 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
     volverA.current = null
   }, [vista, ampliada])
 
+  // El ancho del panel cambia con la barra ampliada y con el tamaño de letra: se mide, no se supone.
+  useEffect(() => {
+    const caja = panel.current
+    if (!caja) return undefined
+    const observador = new ResizeObserver(([e]) => setPanelAncho(Math.round(e.contentRect.width)))
+    observador.observe(caja)
+    return () => observador.disconnect()
+  }, [sesion])
+
   // Al cerrar el asistente, el foco vuelve al botón que lo abrió.
   useEffect(() => {
     if (chatPrevio.current && !chatAbierto) botonAsistente.current?.focus()
@@ -198,7 +208,7 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
           los 23 marcadores (D6). En pantalla no cambia nada: los dos tienen posición absoluta. */}
       <section
         ref={panel}
-        className={`panel-flotante${hoja.arrastrando ? ' arrastrando' : ''}${vista === 'lista' && ampliada ? ' ampliada' : ''}`}
+        className={`panel-flotante${hoja.arrastrando ? ' arrastrando' : ''}${ampliada ? ' ampliada' : ''}`}
         style={hoja.movil ? { height: hoja.alto } : undefined}
         aria-label={t('lista.region')}
       >
@@ -289,6 +299,7 @@ function Turista({ catalogo, errorCatalogo, sesion, onSesion }) {
         onUbicar={ubicacion.pedir}
         aviso={aviso}
         margenInferior={hoja.movil ? hoja.alto : 0}
+        panelAncho={panelAncho}
         onSeleccionar={seleccionar}
         textos={textos}
       />

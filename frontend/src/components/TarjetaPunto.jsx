@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../api/cliente.js'
 import { hora, horarioDeHoy, partesRazon, pesos, textoTraslado } from '../data/formato.js'
+import BotonEscuchar from './BotonEscuchar.jsx'
 import IconoEstado from './IconoEstado.jsx'
 import { ficha } from '../i18n/backend.js'
 import { useIdioma } from '../i18n/contexto.js'
@@ -54,14 +55,25 @@ function TarjetaPunto({ puntoId, origenId, onVolver, onAlternativa, onEstoyAqui,
   const traslado = textoTraslado(estado.traslado, t)
   const descripcion = estado.ficha && ficha(estado.clave, estado.ficha, idioma)
   const confianza = confianzaTexto(estado, t)
+  // Lo que lee "Escuchar": lo mismo que se ve primero, en el orden en que se ve.
+  const lectura = [
+    estado.nombre, t(`sem.${estado.color}`), ...partesRazon(estado.razon, idioma), descripcion,
+    `${t('ficha.horario')}: ${horarioDeHoy(estado.horario, t)}`, traslado && `${t('ficha.traslado')}: ${traslado}`,
+  ]
 
   return (
+    // Cuatro zonas: en la barra angosta van una tras otra; con la barra ampliada, lo principal y las
+    // acciones quedan a la izquierda y los datos a la derecha, sin tener que bajar (CSS).
     <article className="detalle-punto">
+      <div className="ficha-principal">
       <button type="button" className="boton-texto" onClick={onVolver}>{t('ficha.volver')}</button>
       <Foto id={estado.clave} nombre={estado.nombre} credito />
       <p className="suave" style={{ marginTop: 12 }}>{estado.destino}{estado.es_inah ? t('ficha.inah') : ''}</p>
       <h2 id="ficha-titulo" ref={titulo} tabIndex={-1}>{estado.nombre}</h2>
-      <Semaforo color={estado.color} grande />
+      <div className="estado-fila">
+        <Semaforo color={estado.color} grande />
+        <BotonEscuchar partes={lectura} />
+      </div>
       {estado.ajuste_manual && <p style={{ marginTop: 10 }}><span className="ajuste-etiqueta">{t('ficha.ajustado', { motivo: estado.ajuste_manual })}</span></p>}
       {(estado.vs_normal === 'mas_lleno' || estado.vs_normal === 'menos_lleno') && (
         <p style={{ marginTop: 10 }}>
@@ -76,7 +88,9 @@ function TarjetaPunto({ puntoId, origenId, onVolver, onAlternativa, onEstoyAqui,
         })}</p>
       )}
       {descripcion && <p className="descripcion">{descripcion}</p>}
+      </div>
 
+      <div className="ficha-datos">
       <ul className="razones">
         {partesRazon(estado.razon, idioma).map((r) => <li key={r}>{r}</li>)}
         {estado.eventos.map((e) => <li key={e}>{t('ficha.hoy', { evento: e })}</li>)}
@@ -140,13 +154,20 @@ function TarjetaPunto({ puntoId, origenId, onVolver, onAlternativa, onEstoyAqui,
         </>
       )}
 
+      </div>
+
+      <div className="ficha-acciones">
       <div className={`acciones${conviene ? '' : ' dos'}`}>
         {!conviene && <button type="button" className="boton primario" onClick={onAlternativa}>{t('ficha.mejorVe')}</button>}
         <button type="button" className={`boton${conviene ? ' primario' : ''}`} onClick={onEstoyAqui}>{t('ficha.estoyAqui')}</button>
       </div>
       <a className="boton ancho" style={{ marginTop: 12 }} href={estado.como_llegar_url} target="_blank" rel="noreferrer">{t('ficha.comoLlegar')}</a>
+      </div>
+
+      <div className="ficha-fuentes">
       {estado.fuente && <p className="fuente-dato">{t('ficha.fuente', { fuente: estado.fuente })}</p>}
       <p className="fuente-dato">{actualizacion(estado.datos, t)} {t('datos.metodo')}</p>
+      </div>
     </article>
   )
 }

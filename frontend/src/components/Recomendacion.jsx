@@ -3,6 +3,7 @@ import { api } from '../api/cliente.js'
 import { hora, partesRazon, textoTraslado } from '../data/formato.js'
 import { explicacionRec, ficha } from '../i18n/backend.js'
 import { useIdioma } from '../i18n/contexto.js'
+import BotonEscuchar from './BotonEscuchar.jsx'
 import Foto from './Foto.jsx'
 import Semaforo from './Semaforo.jsx'
 
@@ -75,6 +76,7 @@ function Recomendacion({ puntoId, sesionId, origenId, catalogo, intereses, onVol
         {volver}
         <h2 className="titulo-rec">{rec.motivo ? t('rec.sinAlternativa') : t('rec.estaBien', { lugar: corto(pedido.nombre) })}</h2>
         <p className="aviso info">{explicacion}</p>
+        <BotonEscuchar partes={[rec.motivo ? t('rec.sinAlternativa') : t('rec.estaBien', { lugar: corto(pedido.nombre) }), explicacion]} />
         {otraHora && <p className="tip">{t('rec.otraHora', { hora: hora(otraHora.hora), color: colorOtraHora })}</p>}
       </div>
     )
@@ -88,6 +90,7 @@ function Recomendacion({ puntoId, sesionId, origenId, catalogo, intereses, onVol
       {volver}
       <h2 className="titulo-rec">{t('rec.titulo', { lugar: corto(alternativa.nombre) })}</h2>
       <p className="secundario">{explicacion}</p>
+      <BotonEscuchar partes={[t('rec.titulo', { lugar: corto(alternativa.nombre) }), explicacion, descripcion && ficha(alternativa.clave, descripcion, idioma)]} />
 
       <div className="comparacion" style={{ marginTop: 14 }}>
         {pedido && (

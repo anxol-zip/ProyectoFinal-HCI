@@ -14,27 +14,30 @@ const ZOOM_GPS = 16              // al centrar en tu ubicación real
 const ICONO_YO = L.divIcon({ className: '', html: '<div class="marcador-yo"></div>', iconSize: [22, 22], iconAnchor: [11, 11] })
 
 // Lo que tapan el panel (escritorio) o la hoja inferior (celular), para encuadrar en lo que se ve.
-function margenes(tamano, margenInferior) {
+// `panelAncho` es el ancho real del panel: cambia con la barra ampliada y con el tamaño de letra.
+function margenes(tamano, margenInferior, panelAncho) {
   if (tamano.x <= 820) return { paddingTopLeft: [32, 96], paddingBottomRight: [64, margenInferior + 32] }
-  return { paddingTopLeft: [456, 64], paddingBottomRight: [96, 64] }
+  return { paddingTopLeft: [panelAncho + 56, 64], paddingBottomRight: [96, 64] }
 }
 
 // Mueve la cámara: al entrar, a tu ubicación; al elegir un lugar, a ti y al lugar (y a la
 // alternativa, si la hay); con una lectura nueva del GPS, a esa posición. Al volver a la lista
 // se queda donde está. Si el GPS falla no se mueve: no hay posición de respaldo.
-function Camara({ yo, enfoque, margenInferior, gps }) {
+function Camara({ yo, enfoque, margenInferior, panelAncho, gps }) {
   const mapa = useMap()
   // La hoja cambia de alto al arrastrarla: se guarda en un ref para usar el valor más
   // reciente al encuadrar, sin volver a encuadrar cada vez que se mueve.
   const inferior = useRef(margenInferior)
   useEffect(() => { inferior.current = margenInferior }, [margenInferior])
+  const izquierdo = useRef(panelAncho)
+  useEffect(() => { izquierdo.current = panelAncho }, [panelAncho])
   const inicio = useRef(false)
 
   const encuadrar = useCallback((latlngs, animar) => {
     let limites = latlngs.length === 1 ? L.latLng(latlngs[0]).toBounds(RADIO_INICIAL_M) : L.latLngBounds(latlngs)
     // Si el lugar elegido es donde ya estás, no hay nada que encuadrar: se muestran sus alrededores.
     if (limites.getNorthEast().distanceTo(limites.getSouthWest()) < 300) limites = limites.getCenter().toBounds(RADIO_CERCA_M)
-    const opciones = { ...margenes(mapa.getSize(), inferior.current), maxZoom: 16 }
+    const opciones = { ...margenes(mapa.getSize(), inferior.current, izquierdo.current), maxZoom: 16 }
     if (animar) mapa.flyToBounds(limites, { ...opciones, duration: 0.8 })
     else mapa.fitBounds(limites, opciones)
   }, [mapa])
@@ -54,7 +57,7 @@ function Camara({ yo, enfoque, margenInferior, gps }) {
   useEffect(() => {
     if (!gps) return
     const centro = L.latLng(gps.lat, gps.lon)
-    const opciones = { ...margenes(mapa.getSize(), inferior.current), maxZoom: ZOOM_GPS, duration: 0.8 }
+    const opciones = { ...margenes(mapa.getSize(), inferior.current, izquierdo.current), maxZoom: ZOOM_GPS, duration: 0.8 }
     if (gps.precision > 150) mapa.flyToBounds(centro.toBounds(gps.precision * 2), opciones)
     else mapa.flyToBounds(centro.toBounds(RADIO_CERCA_M / 2), opciones)
   }, [gps, mapa])
@@ -67,7 +70,7 @@ function Camara({ yo, enfoque, margenInferior, gps }) {
 // (`gps`, ya filtrado en Turista); si no, el lugar que eligió en el inicio. Una ubicación aproximada
 // (Wi-Fi o IP, kilómetros de error) no mueve el mapa: es lo que lo mandaba "a otro lado".
 // Las coordenadas se quedan en el celular: nunca se envían (RN_07).
-function Mapa({ puntos, seleccionadoId, destacadoId, origen, gps, buscando, onUbicar, aviso, margenInferior, onSeleccionar, textos }) {
+function Mapa({ puntos, seleccionadoId, destacadoId, origen, gps, buscando, onUbicar, aviso, margenInferior, panelAncho = 400, onSeleccionar, textos }) {
   const { letra } = usePreferencias()
   const tamano = Math.round(34 * ESCALA_MARCADOR[letra])
   const yo = gps ? [gps.lat, gps.lon] : (origen ? [origen.lat, origen.lon] : null)
@@ -119,7 +122,7 @@ function Mapa({ puntos, seleccionadoId, destacadoId, origen, gps, buscando, onUb
           <Marker position={yo} icon={ICONO_YO} title={gps ? textos.tu : textos.elegido} alt={gps ? textos.tu : textos.elegido}
             zIndexOffset={2000} interactive={false} keyboard={false} />
         )}
-        <Camara yo={yo} enfoque={enfoque} margenInferior={margenInferior} gps={gps} />
+        <Camara yo={yo} enfoque={enfoque} margenInferior={margenInferior} panelAncho={panelAncho} gps={gps} />
         <ControlesMapa onUbicar={onUbicar} buscando={buscando} textos={textos.controles} />
       </MapContainer>
       <LeyendaMapa textos={textos.leyenda} />
