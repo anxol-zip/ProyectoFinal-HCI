@@ -45,8 +45,8 @@ git --version; uv --version; node -v
 El trabajo integrado está en **`develop`**:
 
 ```bash
-git clone -b develop https://github.com/anxol-zip/ProyectoFinal-HCI.git
-cd ProyectoFinal-HCI
+git clone -b develop https://github.com/anxol-zip/RUMBO.git
+cd RUMBO
 cd backend && uv sync && cd ..
 cd frontend && npm ci && cd ..
 ```
@@ -243,5 +243,5 @@ Prueba desde un celular: `http://<IP>:8000`.
 ## Dónde seguir
 
 - Qué es el proyecto y su estructura: [`README.md`](README.md).
-- Propuesta y criterios de las pruebas de usabilidad: [`docs/Propuesta_Inicial.md`](docs/Propuesta_Inicial.md).
+- Propuesta y criterios de las pruebas de usabilidad: [`docs/HCI/Propuesta_Inicial.md`](docs/HCI/Propuesta_Inicial.md).
 - Endpoints y reglas de negocio heredados del hackathon: [`docs/hackathon/`](docs/hackathon/).
