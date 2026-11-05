@@ -463,11 +463,18 @@ def registrar_reporte(con: sqlite3.Connection, ahora: datetime, sesion_id: str, 
                     lambda a, b: (matriz.get((a, b)) or (None, None))[0], es_demo=es_demo)
         estado, peso, motivo, descartar = f.estado, f.peso, f.motivo, f.descartar_sesion
 
-    cur = con.execute(
-        "INSERT INTO reporte (sesion_id, punto_id, creado_en, nivel, espera_min, distancia_m, peso, estado, motivo) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (sesion_id, punto_id, ahora.isoformat(timespec="seconds"), nivel, espera_min,
-         None if distancia_m is None else round(distancia_m), peso, estado, motivo))
+    try:
+        cur = con.execute(
+            "INSERT INTO reporte (sesion_id, punto_id, creado_en, nivel, espera_min, distancia_m, peso, estado, motivo) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (sesion_id, punto_id, ahora.isoformat(timespec="seconds"), nivel, espera_min,
+             None if distancia_m is None else round(distancia_m), peso, estado, motivo))
+    except sqlite3.IntegrityError as e:
+        if "RN_05" not in str(e):
+            raise
+        # Otra petición guardó el mismo reporte después de leer ``previos``: el filtro ya lo verá como repetido.
+        con.rollback()
+        return registrar_reporte(con, ahora, sesion_id, punto_id, nivel, espera_min, distancia_m)
     if descartar:
         con.execute("UPDATE reporte SET estado = 'descartado', peso = 0 WHERE sesion_id = ?", (sesion_id,))
     con.commit()
