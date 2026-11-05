@@ -2,7 +2,7 @@
 
 Proyecto final de **Interacción Persona Máquina** (13009A-O26, Dra. Gabriela A. Rodríguez Ruiz), Universidad Iberoamericana Puebla. Tema del curso: *Interfaces Inteligentes para el Bienestar Social*.
 
-**Equipo:** Angel Rugerio Jiménez (201720), Axel García Arellano (201251), Diego Navarro Sánchez (202497) y Yohualli Ollin Luna Reyes (198670).
+**Equipo:** Angel Rugerio Jiménez (201720), Axel García Arellano (201251), Diego Navarro Sánchez (202497) y Yohualli Ollin Luna Reyes (189670).
 
 ## De qué va
 

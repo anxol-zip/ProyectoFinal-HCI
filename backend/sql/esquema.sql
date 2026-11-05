@@ -207,3 +207,20 @@ CREATE TABLE IF NOT EXISTS ajuste_manual (
 
 CREATE INDEX IF NOT EXISTS ix_reporte_punto_fecha ON reporte (punto_id, creado_en);
 CREATE INDEX IF NOT EXISTS ix_establecimiento_mun ON establecimiento (cve_mun, giro);
+
+-- ───────────── Reglas que hace cumplir la base ─────────────
+
+-- RN_05: un reporte que cuenta por sesión y punto cada 30 min. reportes.filtrar lo revisa antes para
+-- dar un mensaje claro y guardar el repetido como 'descartado'; esto es lo que no se puede saltar.
+CREATE TRIGGER IF NOT EXISTS reporte_uno_cada_30_min
+BEFORE INSERT ON reporte
+WHEN NEW.estado <> 'descartado' AND EXISTS (
+    SELECT 1 FROM reporte r
+    WHERE r.sesion_id = NEW.sesion_id
+      AND r.punto_id = NEW.punto_id
+      AND r.estado <> 'descartado'
+      AND CAST(strftime('%s', NEW.creado_en) AS INTEGER) - CAST(strftime('%s', r.creado_en) AS INTEGER) < 1800
+)
+BEGIN
+    SELECT RAISE(ABORT, 'RN_05: reporte repetido');
+END;

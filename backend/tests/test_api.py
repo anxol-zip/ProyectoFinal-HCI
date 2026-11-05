@@ -1,5 +1,6 @@
 """Endpoints de la API contra una BD sintética (no depende de puebla.db, que no está en git)."""
 
+import sqlite3
 from datetime import datetime, timedelta
 
 import pytest
@@ -7,7 +8,9 @@ from fastapi.testclient import TestClient
 
 from app import deps
 from app.main import app
+from turismo_core import servicio
 from turismo_core.bd import conectar, crear_esquema
+from turismo_core.reportes import Filtro
 
 T = datetime(2026, 10, 16, 13, 0)
 HORA = T.strftime("%Y-%m-%d %H:00")
@@ -89,6 +92,47 @@ def test_tres_reportes_llenos_confirman_y_cambian_el_color(cliente):
     assert r["reporte"]["estado"] == "valido"
     assert (r["punto"]["color"], r["punto"]["confianza"]) == ("rojo", "confirmado por turistas")
     assert r["punto"]["normalmente"] == "verde"
+
+
+def _guardar_reporte(con, sid, punto_id, creado_en, estado=None):
+    columnas = "sesion_id, punto_id, creado_en, nivel" + (", estado" if estado else "")
+    valores = (sid, punto_id, creado_en, 2) + ((estado,) if estado else ())
+    con.execute(f"INSERT INTO reporte ({columnas}) VALUES ({', '.join('?' * len(valores))})", valores)
+
+
+def test_la_base_rechaza_el_reporte_repetido_sin_pasar_por_la_app(cliente):
+    c, reloj = cliente
+    sid, otra = sesion(c), sesion(c)
+    con = conectar(reloj["ruta"])
+    _guardar_reporte(con, sid, 1, "2026-11-04T13:00:00")
+    with pytest.raises(sqlite3.IntegrityError, match="RN_05"):
+        _guardar_reporte(con, sid, 1, "2026-11-04T13:29:59")
+    with pytest.raises(sqlite3.IntegrityError, match="RN_05"):
+        _guardar_reporte(con, sid, 1, "2026-11-04T13:10:00", "dudoso")
+    # Sí pasan: el descartado (se guarda como evidencia), otro punto, otra sesión y a los 30 min exactos.
+    _guardar_reporte(con, sid, 1, "2026-11-04T13:10:00", "descartado")
+    _guardar_reporte(con, sid, 2, "2026-11-04T13:10:00")
+    _guardar_reporte(con, otra, 1, "2026-11-04T13:10:00")
+    _guardar_reporte(con, sid, 1, "2026-11-04T13:30:00")
+    con.close()
+
+
+def test_si_la_base_rechaza_un_reporte_simultaneo_la_api_avisa_que_es_repetido(cliente, monkeypatch):
+    c, _ = cliente
+    sid = sesion(c)
+    c.post("/api/reportes", json={"sesion_id": sid, "punto_id": 1, "nivel": 2})
+    # Simula la carrera: la primera pasada del filtro no alcanzó a ver el reporte anterior.
+    real = servicio.filtrar
+    pasadas = []
+
+    def filtro_ciego(*args, **kwargs):
+        pasadas.append(1)
+        return Filtro("valido", 1.0, None) if len(pasadas) == 1 else real(*args, **kwargs)
+
+    monkeypatch.setattr(servicio, "filtrar", filtro_ciego)
+    r = c.post("/api/reportes", json={"sesion_id": sid, "punto_id": 1, "nivel": 2})
+    assert r.status_code == 200
+    assert r.json()["reporte"]["estado"] == "descartado" and "13:30" in r.json()["reporte"]["mensaje"]
 
 
 def test_reporte_repetido_y_punto_cerrado(cliente):
