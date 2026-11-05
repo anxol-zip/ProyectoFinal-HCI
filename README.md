@@ -1,8 +1,13 @@
-# Puebla Ahora, para todas las personas
+# RUMBO
 
-Proyecto final de **Interacción Persona Máquina** (13009A-O26, Dra. Gabriela A. Rodríguez Ruiz), Universidad Iberoamericana Puebla. Tema del curso: *Interfaces Inteligentes para el Bienestar Social*.
+**RUMBO** (Redistribución Unificada con Mapas, Búsquedas y Opiniones) es el repositorio del proyecto final de dos materias de la Universidad Iberoamericana Puebla. Cada materia tiene su propio equipo, entregables y documentación:
 
-**Equipo:** Angel Rugerio Jiménez (201720), Axel García Arellano (201251), Diego Navarro Sánchez (202497) y Yohualli Ollin Luna Reyes (189670).
+| Materia | Docente | Equipo | Documentación |
+| --- | --- | --- | --- |
+| **Interacción Persona Máquina** (13009A-O26). Tema del curso: *Interfaces Inteligentes para el Bienestar Social* | Dra. Gabriela A. Rodríguez Ruiz | Angel Rugerio Jiménez (201720), Axel García Arellano (201251), Diego Navarro Sánchez (202497) y Yohualli Ollin Luna Reyes (189670) | [`docs/HCI/`](docs/HCI/) |
+| **Diseño de Software** | Mtro. Rafael Pérez Aguirre | El mismo equipo y Cristian Alexei Romero Martínez (203739) | [`docs/DdS/`](docs/DdS/) |
+
+Cristian participa solo en Diseño de Software. La aplicación todavía se muestra con el nombre **Puebla Ahora**, el mismo de la propuesta de Interacción Persona Máquina.
 
 ## De qué va
 
@@ -16,7 +21,7 @@ La app nació en un hackathon. En este proyecto **rediseñamos su interfaz con l
 - **Para distintas edades y capacidades:** botones grandes, uso con teclado y lector de pantalla, y lectura en voz alta.
 - **Pruebas de usabilidad** con personas ajenas al equipo, antes y después.
 
-La propuesta completa está en [`docs/Propuesta_Inicial.md`](docs/Propuesta_Inicial.md) y en su [PDF](docs/Proyecto%20Final%20-%20Propuesta%20inicial.pdf). La propuesta mencionaba PySide6 y Qt Designer: la profesora autorizó después seguir en React.
+La propuesta completa está en [`docs/HCI/Propuesta_Inicial.md`](docs/HCI/Propuesta_Inicial.md) y en su [PDF](docs/HCI/Proyecto%20Final%20-%20Propuesta%20inicial.pdf). La propuesta mencionaba PySide6 y Qt Designer: la profesora autorizó después seguir en React.
 
 ## Origen del código
 
@@ -35,7 +40,7 @@ Se copió **sin historia de git** y sin `backend/.env` (claves) ni `backend/data
 | `frontend/` | La app en **React 19 + Vite**: aquí está el trabajo de la materia |
 | `backend/` | API en **FastAPI**, `turismo_core` (semáforo, recomendador y reportes), servidor MCP y asistente con Ollama |
 | `catalogo/` | Los lugares de la zona piloto |
-| `docs/` | Propuesta, instrucciones del proyecto y referencias del hackathon |
+| `docs/` | Documentación de cada materia (`HCI/`, `DdS/`) y referencias del hackathon (`hackathon/`) |
 | `herramientas/` | `bd_desarrollo.py`: crea la base de desarrollo |
 | `INSTALACION.md` | Cómo correrlo, en modo de desarrollo o con los datos reales, en Windows y Linux |
 
